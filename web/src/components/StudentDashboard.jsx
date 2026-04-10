@@ -26,7 +26,7 @@ const StudentDashboard = () => {
         } catch (error) { console.error("Failed to fetch coaches"); }
       };
       fetchCoaches();
-    } else if (activeView === 'schedule') {
+    } else if (activeView === 'schedule' || activeView === 'reviews') {
       const fetchLessons = async () => {
         try {
           const lessons = await bookingService.getStudentLessons(user.id);
@@ -67,7 +67,6 @@ const StudentDashboard = () => {
       setSelectedCoachId(''); setBookingDate(''); setBookingTime('');
       setActiveView('schedule');
     } catch (error) {
-      // Catches the TIME_CONFLICT error from the Java backend
       alert(error.message);
     } finally {
       setIsSubmitting(false);
@@ -87,38 +86,23 @@ const StudentDashboard = () => {
       for (let col = 0; col < 8; col++) {
         const isDark = (row + col) % 2 === 1;
         const piece = pieces[`${row}-${col}`] || '';
-        squares.push(
-          <div key={`${row}-${col}`} className={`student-square ${isDark ? 'student-dark' : 'student-light'}`}>
-            {piece}
-          </div>
-        );
+        squares.push(<div key={`${row}-${col}`} className={`student-square ${isDark ? 'student-dark' : 'student-light'}`}>{piece}</div>);
       }
     }
     return squares;
   };
 
+  const activeLessons = myLessons.filter(l => l.status !== 'COMPLETED');
+  const pastLessons = myLessons.filter(l => l.status === 'COMPLETED');
+
   return (
     <div className="student-layout">
       <aside className="student-sidebar">
-        <h2 className="font-serif" style={{ textAlign: 'center', marginBottom: '1rem' }}>CheckMate</h2>
-        <button
-          className={`student-side-btn font-serif ${activeView === 'schedule' ? 'student-side-btn-active' : ''}`}
-          onClick={() => setActiveView('schedule')}
-        >
-          My Schedule
-        </button>
-        <button
-          className={`student-side-btn font-serif ${activeView === 'booking' ? 'student-side-btn-active' : ''}`}
-          onClick={() => setActiveView('booking')}
-        >
-          Book a Lesson
-        </button>
-        <button
-          className={`student-side-btn font-serif ${activeView === 'board' ? 'student-side-btn-active' : ''}`}
-          onClick={() => setActiveView('board')}
-        >
-          Training Board
-        </button>
+        <h2 className="font-serif" style={{ textAlign: 'center', marginBottom: '1rem' }}>CheckMateAcademy</h2>
+        <button className={`student-side-btn font-serif ${activeView === 'schedule' ? 'student-side-btn-active' : ''}`} onClick={() => setActiveView('schedule')}>My Schedule</button>
+        <button className={`student-side-btn font-serif ${activeView === 'reviews' ? 'student-side-btn-active' : ''}`} onClick={() => setActiveView('reviews')}>Lesson Reviews</button>
+        <button className={`student-side-btn font-serif ${activeView === 'booking' ? 'student-side-btn-active' : ''}`} onClick={() => setActiveView('booking')}>Book a Lesson</button>
+        <button className={`student-side-btn font-serif ${activeView === 'board' ? 'student-side-btn-active' : ''}`} onClick={() => setActiveView('board')}>Training Board</button>
       </aside>
 
       <main className="student-main-content">
@@ -130,9 +114,7 @@ const StudentDashboard = () => {
         {activeView === 'board' && (
           <>
             <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Tactics Board</h2>
-            <div className="student-board-container">
-              <div className="student-chess-grid">{renderBoard()}</div>
-            </div>
+            <div className="student-board-container"><div className="student-chess-grid">{renderBoard()}</div></div>
           </>
         )}
 
@@ -145,9 +127,7 @@ const StudentDashboard = () => {
                   <label>Select a Coach</label>
                   <select className="student-select" value={selectedCoachId} onChange={(e) => setSelectedCoachId(e.target.value)} required>
                     <option value="">-- Choose a Grandmaster --</option>
-                    {coaches.map(coach => (
-                      <option key={coach.id} value={coach.id}>{coach.fullName}</option>
-                    ))}
+                    {coaches.map(coach => <option key={coach.id} value={coach.id}>{coach.fullName}</option>)}
                   </select>
                 </div>
                 <div className="student-form-group">
@@ -158,9 +138,7 @@ const StudentDashboard = () => {
                   <label>Select Time</label>
                   <input type="time" className="student-date-input" value={bookingTime} onChange={(e) => setBookingTime(e.target.value)} required />
                 </div>
-                <button type="submit" className="student-submit-btn" disabled={isSubmitting}>
-                  {isSubmitting ? 'Requesting...' : 'Confirm Booking'}
-                </button>
+                <button type="submit" className="student-submit-btn" disabled={isSubmitting}>{isSubmitting ? 'Requesting...' : 'Confirm Booking'}</button>
               </form>
             </div>
           </>
@@ -168,35 +146,50 @@ const StudentDashboard = () => {
 
         {activeView === 'schedule' && (
           <>
-            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>My Schedule</h2>
+            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Upcoming Schedule</h2>
             <div className="student-table-container">
               <table className="student-table">
-                <thead>
-                  <tr>
-                    <th>Coach Name</th>
-                    <th>Date / Time</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>Coach Name</th><th>Date / Time</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
-                  {myLessons.length === 0 ? (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>You have no bookings.</td></tr>
+                  {activeLessons.length === 0 ? (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>You have no upcoming bookings.</td></tr>
                   ) : (
-                    myLessons.map((lesson) => (
+                    activeLessons.map((lesson) => (
                       <tr key={lesson.id}>
-                        <td style={{ fontWeight: 'bold' }}>{lesson.coachName || 'Unknown Coach'}</td>
+                        <td style={{ fontWeight: 'bold' }}>{lesson.coachName}</td>
                         <td>{new Date(lesson.startTime).toLocaleString()}</td>
                         <td><span className={`status-badge status-${lesson.status}`}>{lesson.status}</span></td>
                         <td>
                           {lesson.status === 'ACCEPTED' && (
-                            <button
-                              onClick={() => navigate(`/lesson/${lesson.id}`)}
-                              className="student-action-btn font-serif"
-                            >
-                              Join Lesson
-                            </button>
+                            <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="student-action-btn font-serif">Join Lesson</button>
                           )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {activeView === 'reviews' && (
+          <>
+            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Past Lesson Reviews</h2>
+            <div className="student-table-container">
+              <table className="student-table">
+                <thead><tr><th>Coach Name</th><th>Date Completed</th><th>Status</th><th>Review</th></tr></thead>
+                <tbody>
+                  {pastLessons.length === 0 ? (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>No past lesson reviews available.</td></tr>
+                  ) : (
+                    pastLessons.map((lesson) => (
+                      <tr key={lesson.id}>
+                        <td style={{ fontWeight: 'bold' }}>{lesson.coachName}</td>
+                        <td>{new Date(lesson.startTime).toLocaleDateString()}</td>
+                        <td><span className={`status-badge status-${lesson.status}`}>{lesson.status}</span></td>
+                        <td>
+                          <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="student-action-btn student-action-btn-secondary font-serif">View Notes</button>
                         </td>
                       </tr>
                     ))

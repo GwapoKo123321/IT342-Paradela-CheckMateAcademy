@@ -18,24 +18,66 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.al-badge-live {
+  background-color: #EF4444; /* Keeps red for LIVE only */
+  color: white;
+  padding: 0.3rem 1rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-left: 1rem;
+  vertical-align: middle;
+  animation: pulse 2s infinite;
+}
+
+.al-badge-completed {
+  background-color: #C29B31; /* Theme Gold */
+  color: white;
+  padding: 0.3rem 1rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-left: 1rem;
+  vertical-align: middle;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
 .al-btn-exit {
   background-color: #F44336;
   color: white;
   border: none;
-  padding: 0.6rem 2rem;
+  padding: 0.8rem 2rem;
   border-radius: 999px;
   font-weight: bold;
   cursor: pointer;
   font-family: 'Arvo', serif;
+  font-size: 1rem;
+}
+
+.al-btn-back {
+  background-color: #C29B31; /* Theme Gold */
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 999px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Arvo', serif;
+  font-size: 1rem;
 }
 
 .al-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Forces a perfect 50/50 split */
+  grid-template-columns: 1fr 1fr;
   gap: 2rem;
   max-width: 1200px;
-  margin: 0 auto; /* Centers the whole layout on the screen */
-  align-items: stretch; /* Makes both panels the same height */
+  margin: 0 auto;
+  align-items: stretch;
 }
 
 /* Chess Board Styles */
@@ -70,21 +112,21 @@
 .al-light { background-color: #F5F1EA; color: black; }
 .al-selected { outline: 4px solid #C29B31; outline-offset: -4px; }
 
-/* Notes Panel Styles - FIXED OVERFLOW */
+/* Notes Panel Styles */
 .al-notes-panel {
-  background-color: #6B4F3A;
+  background-color: #6B4F3A; /* Always Primary Brown */
   padding: 2.5rem;
   border-radius: 40px;
   color: white;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
-  box-sizing: border-box; /* Keeps padding inside the width */
+  box-sizing: border-box;
 }
 
 .al-notes-area {
   width: 100%;
-  flex: 1; /* Forces text area to fill remaining space WITHOUT overflowing */
+  flex: 1;
   min-height: 350px;
   background-color: white;
   color: #333;
@@ -96,7 +138,7 @@
   outline: none;
   margin-top: 1.5rem;
   font-family: 'Inter', sans-serif;
-  box-sizing: border-box; /* Fixes the horizontal overflow */
+  box-sizing: border-box;
 }
 
 .al-btn-save {

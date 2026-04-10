@@ -22,7 +22,6 @@ public class LessonController {
             return ResponseEntity.ok(bookingService.createBooking(lesson));
         } catch (RuntimeException e) {
             if ("TIME_CONFLICT".equals(e.getMessage())) {
-                // Sends your exact requested error message to the UI
                 return ResponseEntity.badRequest().body(Map.of("error", "Booking not available. This coach already has a session at this time."));
             }
             return ResponseEntity.internalServerError().body(Map.of("error", "An unexpected error occurred."));
@@ -52,5 +51,11 @@ public class LessonController {
     @PutMapping("/{lessonId}/notes")
     public ResponseEntity<Lesson> updateNotes(@PathVariable UUID lessonId, @RequestBody String notes) {
         return ResponseEntity.ok(bookingService.saveLessonNotes(lessonId, notes));
+    }
+
+    // NEW: Endpoint to receive board state updates
+    @PutMapping("/{lessonId}/board")
+    public ResponseEntity<Lesson> updateBoardState(@PathVariable UUID lessonId, @RequestBody String boardState) {
+        return ResponseEntity.ok(bookingService.updateBoardState(lessonId, boardState));
     }
 }

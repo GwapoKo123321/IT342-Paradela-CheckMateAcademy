@@ -1,147 +1,32 @@
-.coach-layout {
-  display: flex;
-  min-height: 100vh;
-  background-color: #F5F1EA;
-}
-
-.coach-sidebar {
-  width: 250px;
-  background-color: #6B4F3A;
-  color: white;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.coach-side-btn {
-  background-color: white;
-  color: #6B4F3A;
-  padding: 1rem;
-  border-radius: 999px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.coach-main-content {
-  flex: 1;
-  padding: 3rem;
-}
-
-.coach-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 2rem;
-  align-items: center;
-}
-
-.coach-logout-btn {
-  background-color: #6B4F3A;
-  color: white;
-  padding: 0.6rem 2rem;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.coach-requests-container {
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 40px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.coach-request-card {
-  background-color: #F5F1EA;
-  border: 2px solid #6B4F3A;
-  border-radius: 20px;
-  padding: 1.5rem 2rem;
-  margin-bottom: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.coach-action-btn {
-  padding: 0.8rem 2rem;
-  border-radius: 999px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  margin-left: 1rem;
-  color: white;
-}
-
-.coach-accept { background-color: #4CAF50; }
-.coach-reject { background-color: #F44336; }
-
-
-
 .coach-layout { display: flex; min-height: 100vh; background-color: #F5F1EA; }
+
 .coach-sidebar { width: 250px; background-color: #6B4F3A; color: white; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+
 .coach-side-btn { background-color: white; color: #6B4F3A; padding: 1rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; }
-.coach-main-content { flex: 1; padding: 3rem; }
-.coach-header { display: flex; justify-content: flex-end; margin-bottom: 2rem; align-items: center; }
+.coach-side-btn-active { background-color: #C29B31; color: white; }
+
+.coach-main-content { flex: 1; padding: 3rem; display: flex; flex-direction: column; align-items: center; }
+
+.coach-header { width: 100%; display: flex; justify-content: flex-end; margin-bottom: 2rem; align-items: center; }
+
 .coach-logout-btn { background-color: #6B4F3A; color: white; padding: 0.6rem 2rem; border-radius: 999px; border: none; cursor: pointer; font-weight: bold; }
 
+.coach-table-container { background-color: white; padding: 2.5rem; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 1000px; overflow-x: auto; margin: 0 auto; }
 
-.coach-table-container {
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 40px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  overflow-x: auto;
-}
-
-.coach-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.coach-table th {
-  background-color: #6B4F3A;
-  color: white;
-  padding: 1.2rem;
-  font-family: 'Arvo', serif;
-  font-size: 1.1rem;
-}
-
+.coach-table { width: 100%; border-collapse: collapse; text-align: left; }
+.coach-table th { background-color: #6B4F3A; color: white; padding: 1.2rem; font-family: 'Arvo', serif; font-size: 1.1rem; }
 .coach-table th:first-child { border-top-left-radius: 15px; border-bottom-left-radius: 15px; }
 .coach-table th:last-child { border-top-right-radius: 15px; border-bottom-right-radius: 15px; }
+.coach-table td { padding: 1.2rem; border-bottom: 1px solid #eee; color: #333; }
 
-.coach-table td {
-  padding: 1.2rem;
-  border-bottom: 1px solid #eee;
-  color: #333;
-}
-
-.coach-action-btn {
-  padding: 0.6rem 1.5rem;
-  border-radius: 999px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  margin-right: 0.5rem;
-  color: white;
-  font-family: 'Inter', sans-serif;
-}
-
+.coach-action-btn { padding: 0.6rem 1.2rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; margin-right: 0.5rem; color: white; font-family: 'Inter', sans-serif; margin-bottom: 0.5rem; }
 .coach-accept { background-color: #4CAF50; }
-.coach-accept:hover { background-color: #45a049; }
 .coach-reject { background-color: #F44336; }
-.coach-reject:hover { background-color: #da190b; }
+.coach-join { background-color: #C29B31; }
+.coach-complete { background-color: #6B4F3A; }
 
-.status-badge {
-  padding: 0.4rem 1rem;
-  border-radius: 999px;
-  font-weight: bold;
-  font-size: 0.9rem;
-  display: inline-block;
-}
-
+.status-badge { padding: 0.4rem 1rem; border-radius: 999px; font-weight: bold; font-size: 0.9rem; display: inline-block; }
 .status-PENDING { background-color: #FFF3CD; color: #856404; }
 .status-ACCEPTED { background-color: #D4EDDA; color: #155724; }
 .status-REJECTED { background-color: #F8D7DA; color: #721C24; }
+.status-COMPLETED { background-color: #C29B31; color: white; }

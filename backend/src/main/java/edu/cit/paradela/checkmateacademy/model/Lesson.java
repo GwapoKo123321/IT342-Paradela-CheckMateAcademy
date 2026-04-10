@@ -33,7 +33,10 @@ public class Lesson {
 
     private String status = "PENDING";
 
-
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+
+    @Column(name = "board_state", columnDefinition = "TEXT")
+    private String boardState;
 }

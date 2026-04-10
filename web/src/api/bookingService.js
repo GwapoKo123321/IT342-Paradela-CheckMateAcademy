@@ -5,7 +5,6 @@ const bookLesson = async (bookingData) => {
         const response = await apiClient.post('/lessons', bookingData);
         return response.data;
     } catch (error) {
-        // If the backend sends our custom double-booking error, throw it so the UI can alert it
         if (error.response && error.response.data && error.response.data.error) {
             throw new Error(error.response.data.error);
         }
@@ -45,7 +44,15 @@ const saveLessonNotes = async (lessonId, notes) => {
     return response.data;
 };
 
+
+const updateBoardState = async (lessonId, boardState) => {
+    const response = await apiClient.put(`/lessons/${lessonId}/board`, boardState, {
+        headers: { 'Content-Type': 'text/plain' }
+    });
+    return response.data;
+};
+
 export default {
     bookLesson, getCoachLessons, getStudentLessons, updateLessonStatus,
-    getCoaches, getLessonById, saveLessonNotes
+    getCoaches, getLessonById, saveLessonNotes, updateBoardState
 };

@@ -13,14 +13,10 @@ public class BookingService {
     private LessonRepository lessonRepository;
 
     public Lesson createBooking(Lesson lesson) {
-        // Uses the new overlapping query to prevent bookings inside existing sessions
         boolean isBooked = lessonRepository.existsOverlappingLesson(
                 lesson.getCoachId(), lesson.getStartTime(), lesson.getEndTime()
         );
-
-        if (isBooked) {
-            throw new RuntimeException("TIME_CONFLICT");
-        }
+        if (isBooked) throw new RuntimeException("TIME_CONFLICT");
 
         lesson.setStatus("PENDING");
         return lessonRepository.save(lesson);
@@ -48,6 +44,13 @@ public class BookingService {
     public Lesson saveLessonNotes(UUID lessonId, String notes) {
         Lesson lesson = getLessonById(lessonId);
         lesson.setNotes(notes);
+        return lessonRepository.save(lesson);
+    }
+
+    // NEW: Saves the live piece movements
+    public Lesson updateBoardState(UUID lessonId, String boardState) {
+        Lesson lesson = getLessonById(lessonId);
+        lesson.setBoardState(boardState);
         return lessonRepository.save(lesson);
     }
 }

@@ -3,6 +3,7 @@
 .student-sidebar { width: 250px; background-color: #6B4F3A; color: white; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
 
 .student-side-btn { background-color: white; color: #6B4F3A; padding: 1rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; text-align: center; }
+.student-side-btn-active { background-color: #C29B31; color: white; }
 
 .student-main-content { flex: 1; padding: 3rem; display: flex; flex-direction: column; align-items: center; }
 
@@ -17,79 +18,27 @@
 .student-dark { background-color: #6B4F3A; color: white; }
 .student-light { background-color: #F5F1EA; color: black; }
 
-/* Booking Form - FIXED OVERFLOW AND CENTERING */
-.student-booking-section {
-  background-color: white;
-  padding: 3rem 2rem;
-  border-radius: 40px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 650px; /* Made slightly wider to fit dropdowns */
-  margin: 0 auto; /* Centers the white box on the screen */
-  box-sizing: border-box;
-}
+/* Booking Form */
+.student-booking-section { background-color: white; padding: 3rem 2rem; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 650px; margin: 0 auto; box-sizing: border-box; }
+.student-form-group { display: flex; flex-direction: column; margin-bottom: 1.8rem; text-align: left; width: 100%; }
+.student-form-group label { color: #6B4F3A; font-weight: bold; margin-bottom: 0.8rem; font-family: 'Arvo', serif; font-size: 1.1rem; }
+.student-select, .student-date-input { width: 100%; box-sizing: border-box; padding: 1.2rem; border-radius: 20px; border: 2px solid #E0D8C8; background-color: #F5F1EA; color: #333; font-size: 1.1rem; font-family: 'Inter', sans-serif; outline: none; }
+.student-submit-btn { background-color: #6B4F3A; color: white; padding: 1.2rem 3rem; border-radius: 999px; border: none; font-weight: bold; font-size: 1.2rem; cursor: pointer; width: 100%; font-family: 'Arvo', serif; margin-top: 1.5rem; box-sizing: border-box; }
+.student-submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-.student-form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1.8rem;
-  text-align: left;
-  width: 100%;
-}
-
-.student-form-group label {
-  color: #6B4F3A;
-  font-weight: bold;
-  margin-bottom: 0.8rem;
-  font-family: 'Arvo', serif;
-  font-size: 1.1rem;
-}
-
-.student-select, .student-date-input {
-  width: 100%;
-  box-sizing: border-box; /* This is the magic line that stops the inputs from poking out of the box */
-  padding: 1.2rem;
-  border-radius: 20px;
-  border: 2px solid #E0D8C8;
-  background-color: #F5F1EA;
-  color: #333;
-  font-size: 1.1rem;
-  font-family: 'Inter', sans-serif;
-  outline: none;
-}
-
-.student-submit-btn {
-  background-color: #6B4F3A;
-  color: white;
-  padding: 1.2rem 3rem;
-  border-radius: 999px;
-  border: none;
-  font-weight: bold;
-  font-size: 1.2rem;
-  cursor: pointer;
-  width: 100%;
-  font-family: 'Arvo', serif;
-  margin-top: 1.5rem;
-  box-sizing: border-box;
-}
-
-.student-submit-btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
 /* Schedule Table */
-.student-table-container { background-color: white; padding: 2.5rem; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 900px; overflow-x: auto; }
+.student-table-container { background-color: white; padding: 2.5rem; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 900px; overflow-x: auto; margin: 0 auto; }
 .student-table { width: 100%; border-collapse: collapse; text-align: left; }
 .student-table th { background-color: #6B4F3A; color: white; padding: 1.2rem; font-family: 'Arvo', serif; font-size: 1.1rem; }
 .student-table th:first-child { border-top-left-radius: 15px; border-bottom-left-radius: 15px; }
 .student-table th:last-child { border-top-right-radius: 15px; border-bottom-right-radius: 15px; }
 .student-table td { padding: 1.2rem; border-bottom: 1px solid #eee; color: #333; }
 
-.student-action-btn { background-color: #C29B31; color: white; padding: 0.6rem 1.5rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif; }
+.student-action-btn { background-color: #C29B31; color: white; padding: 0.6rem 1.5rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif; margin-right: 0.5rem; }
+.student-action-btn-secondary { background-color: #6B4F3A; } /* Swapped slate for primary brown */
 
 .status-badge { padding: 0.4rem 1rem; border-radius: 999px; font-weight: bold; font-size: 0.9rem; display: inline-block; }
 .status-PENDING { background-color: #FFF3CD; color: #856404; }
 .status-ACCEPTED { background-color: #D4EDDA; color: #155724; }
 .status-REJECTED { background-color: #F8D7DA; color: #721C24; }
-
-.student-side-btn-active { background-color: #C29B31; color: white; }
+.status-COMPLETED { background-color: #C29B31; color: white; } /* Swapped slate for Theme Gold */

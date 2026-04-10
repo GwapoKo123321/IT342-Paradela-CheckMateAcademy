@@ -15,30 +15,61 @@ const initialBoardState = [
 ];
 
 const ActiveLesson = () => {
-  const { id } = useParams(); // Gets the lesson ID from the URL
+  const { id } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
 
   const [lesson, setLesson] = useState(null);
   const [notes, setNotes] = useState('');
 
-  // Chess logic state
   const [board, setBoard] = useState(initialBoardState);
   const [selectedSquare, setSelectedSquare] = useState(null);
 
+  const isCoach = user.role === 'Coach';
+  const isCompleted = lesson?.status === 'COMPLETED';
+
   useEffect(() => {
-    const fetchLesson = async () => {
+    // Initial Load
+    const loadSession = async () => {
       try {
         const data = await bookingService.getLessonById(id);
         setLesson(data);
         setNotes(data.notes || '');
+        if (data.boardState) setBoard(JSON.parse(data.boardState));
       } catch (error) {
-        alert("Failed to load session data.");
         navigate('/dashboard');
       }
     };
-    fetchLesson();
-  }, [id, navigate]);
+    loadSession();
+
+
+    const syncInterval = setInterval(async () => {
+      if (isCompleted) return; // Stop syncing if the lesson is over
+
+      try {
+        const data = await bookingService.getLessonById(id);
+        setLesson(data);
+
+        // Update the board if the opponent moved
+        if (data.boardState) {
+          setBoard(prev => {
+            const newState = data.boardState;
+            const oldState = JSON.stringify(prev);
+            return newState !== oldState ? JSON.parse(newState) : prev;
+          });
+        }
+
+
+        if (!isCoach) {
+          setNotes(prev => data.notes !== prev ? (data.notes || '') : prev);
+        }
+      } catch (e) {
+        console.error("Sync failed");
+      }
+    }, 2000);
+
+    return () => clearInterval(syncInterval);
+  }, [id, navigate, isCoach, isCompleted]);
 
   const handleSaveNotes = async () => {
     try {
@@ -49,39 +80,58 @@ const ActiveLesson = () => {
     }
   };
 
-  // Click-to-Move Chess Logic
-  const handleSquareClick = (row, col) => {
+  const handleSquareClick = async (row, col) => {
+    if (isCompleted) return; // Prevent moving pieces during a past review
+
     if (selectedSquare) {
-      // Move piece
       const newBoard = board.map(r => [...r]);
       newBoard[row][col] = newBoard[selectedSquare.row][selectedSquare.col];
       newBoard[selectedSquare.row][selectedSquare.col] = '';
+
       setBoard(newBoard);
       setSelectedSquare(null);
+
+
+      try {
+        await bookingService.updateBoardState(id, JSON.stringify(newBoard));
+      } catch (e) {
+        console.error("Failed to push move");
+      }
+
     } else {
-      // Select piece (only if square is not empty)
       if (board[row][col] !== '') {
         setSelectedSquare({ row, col });
       }
     }
   };
 
-  if (!lesson) return <div style={{ padding: '3rem', textAlign: 'center' }}>Loading Session...</div>;
-
-  const isCoach = user.role === 'Coach';
+  if (!lesson) return <div style={{ padding: '3rem', textAlign: 'center', fontFamily: 'Inter' }}>Loading Session...</div>;
 
   return (
     <div className="al-wrapper">
       <div className="al-header">
         <div>
-          <h2 className="font-serif">Live Session</h2>
-          <p>{lesson.coachName} (Coach) vs {lesson.studentName} (Student)</p>
+          <h2 className="font-serif" style={{ margin: 0, fontSize: '2rem' }}>
+            {isCompleted ? 'Lesson Review' : 'Live Session'}
+            {isCompleted ? (
+              <span className="al-badge-completed">COMPLETED</span>
+            ) : (
+              <span className="al-badge-live">● LIVE</span>
+            )}
+          </h2>
+          <p style={{ margin: '0.5rem 0 0 0', opacity: 0.9 }}>
+            {lesson.coachName} (Coach) vs {lesson.studentName} (Student)
+          </p>
         </div>
-        <button className="al-btn-exit" onClick={() => navigate('/dashboard')}>Leave Session</button>
+        <button
+          className={isCompleted ? 'al-btn-back' : 'al-btn-exit'}
+          onClick={() => navigate('/dashboard')}
+        >
+          {isCompleted ? 'Back to Dashboard' : 'Leave Session'}
+        </button>
       </div>
 
       <div className="al-grid">
-        {/* Playable Chess Board */}
         <div className="al-board-panel">
           <div className="al-chess-grid">
             {board.map((row, rowIndex) =>
@@ -102,9 +152,10 @@ const ActiveLesson = () => {
           </div>
         </div>
 
-        {/* Dynamic Notes Panel based on Role */}
         <div className="al-notes-panel">
-          <h2 className="font-serif">Coach's Notes</h2>
+          <h2 className="font-serif" style={{ margin: 0, fontSize: '1.8rem' }}>
+            {isCompleted ? "Final Evaluation Notes" : "Coach's Notes"}
+          </h2>
 
           {isCoach ? (
             <>
@@ -112,9 +163,11 @@ const ActiveLesson = () => {
                 className="al-notes-area"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Write lesson feedback, tactics, and homework here..."
+                placeholder={isCompleted ? "Add final review remarks here..." : "Write lesson feedback, tactics, and homework here..."}
               />
-              <button className="al-btn-save font-serif" onClick={handleSaveNotes}>Save Notes</button>
+              <button className="al-btn-save font-serif" onClick={handleSaveNotes}>
+                {isCompleted ? "Update Final Review" : "Save Notes"}
+              </button>
             </>
           ) : (
             <div className="al-notes-area" style={{ overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
