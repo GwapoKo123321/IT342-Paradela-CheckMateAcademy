@@ -1,0 +1,78 @@
+.student-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #F5F1EA;
+}
+
+.student-sidebar {
+  width: 250px;
+  background-color: #6B4F3A;
+  color: white;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.student-side-btn {
+  background-color: white;
+  color: #6B4F3A;
+  padding: 1rem;
+  border-radius: 999px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+
+.student-main-content {
+  flex: 1;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.student-header {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+.student-logout-btn {
+  background-color: #6B4F3A;
+  color: white;
+  padding: 0.6rem 2rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.student-board-container {
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  display: inline-block;
+}
+
+.student-chess-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 60px);
+  grid-template-rows: repeat(8, 60px);
+  border: 8px solid #6B4F3A;
+  border-radius: 4px;
+}
+
+.student-square {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+}
+
+.student-dark { background-color: #6B4F3A; color: white; }
+.student-light { background-color: #F5F1EA; color: black; }

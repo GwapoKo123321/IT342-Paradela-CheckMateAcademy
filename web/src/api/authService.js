@@ -1,21 +1,17 @@
-import apiClient from './apiClient'; // Using the Singleton
-
-const registerUser = async (userData) => {
-    // Facade: Simplifies the call for the UI components
-    return await apiClient.post('/auth/register', userData);
-};
+import apiClient from './apiClient';
 
 const loginUser = async (credentials) => {
     const response = await apiClient.post('/auth/login', credentials);
-    if (response.data.accessToken) {
-        localStorage.setItem('token', response.data.accessToken); // Aligns with SDD [cite: 198]
+    if (response.data.success) {
+        localStorage.setItem('token', response.data.data.accessToken);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        return response.data.data;
     }
-    return response.data;
+    throw new Error("Login failed");
 };
 
-const authService = {
-    registerUser,
-    loginUser
+const registerUser = async (userData) => {
+    return await apiClient.post('/auth/register', userData);
 };
 
-export default authService;
+export default { loginUser, registerUser };

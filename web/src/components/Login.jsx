@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../api/authService';
-import '../App.css';
+import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,32 +12,32 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await authService.loginUser(credentials);
-      alert("Login Successful! Welcome " + (response.data.full_name || "User"));
-      navigate('/');
+      const data = await authService.loginUser(credentials);
+      alert("Welcome back, " + data.user.fullName);
+      navigate('/dashboard');
     } catch (error) {
-      alert("Login failed: Invalid credentials");
+      alert("Login failed: Invalid email or password.");
     }
   };
 
   return (
-    <div>
-      <nav className="navbar">
-        <div className="nav-brand font-serif">CheckMateAcademy</div>
-        <div className="nav-buttons">
-          <button className="nav-btn-white" onClick={() => navigate('/login')}>Login</button>
-          <button className="nav-btn-white" onClick={() => navigate('/register')}>Register</button>
+    <div className="login-wrapper">
+      <nav className="login-navbar">
+        <div className="login-brand font-serif">CheckMateAcademy</div>
+        <div className="login-nav-actions">
+          <button className="login-nav-btn font-serif" onClick={() => navigate('/login')}>Login</button>
+          <button className="login-nav-btn font-serif" onClick={() => navigate('/register')}>Register</button>
         </div>
       </nav>
-      <div className="container">
-        <div className="card">
-          <h2 className="card-title font-serif">Welcome Future Grand Master</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="login-form-group">
-              <input name="email" type="email" placeholder="Username (Email)" className="input-field" onChange={handleChange} required />
-              <input name="password" type="password" placeholder="Password" className="input-field" onChange={handleChange} required />
-              <button type="submit" className="btn-submit-white mt-4">Login</button>
-            </div>
+
+      <div className="login-container">
+        <div className="login-card">
+          <h2 className="login-title font-serif">Welcome Future<br/>Grand Master</h2>
+
+          <form onSubmit={handleSubmit} className="login-form">
+            <input name="email" type="email" placeholder="Email" className="login-input" onChange={handleChange} required />
+            <input name="password" type="password" placeholder="Password" className="login-input" onChange={handleChange} required />
+            <button type="submit" className="login-submit-btn font-serif">Login</button>
           </form>
         </div>
       </div>

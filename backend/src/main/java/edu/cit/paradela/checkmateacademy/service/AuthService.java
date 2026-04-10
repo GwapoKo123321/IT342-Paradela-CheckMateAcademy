@@ -7,12 +7,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
-@Service // This is a SINGLETON by default in Spring
+@Service
 public class AuthService {
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
@@ -22,7 +20,7 @@ public class AuthService {
     }
 
     public Optional<User> authenticate(String email, String password) {
-        Optional<User> user = userRepository.findByEmail(email);
+        Optional<User> user = userRepository.findByEmailIgnoreCase(email);
         if (user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
             return user;
         }
@@ -30,6 +28,6 @@ public class AuthService {
     }
 
     public boolean emailExists(String email) {
-        return userRepository.findByEmail(email).isPresent();
+        return userRepository.findByEmailIgnoreCase(email).isPresent();
     }
 }

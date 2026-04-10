@@ -1,0 +1,27 @@
+.directoryPage { padding: 3rem; background-color: var(--chess-cream); }
+
+.coachGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.coachCard {
+  background-color: var(--chess-brown);
+  border-radius: 60px;
+  padding: 3rem;
+  color: white;
+  text-align: center;
+}
+
+.bookBtn {
+  background-color: white;
+  color: var(--chess-brown);
+  padding: 0.8rem 2.5rem;
+  border-radius: 999px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+}

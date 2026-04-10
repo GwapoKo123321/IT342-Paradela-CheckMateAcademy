@@ -3,16 +3,17 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
+import StudentDashboard from './components/StudentDashboard';
+import CoachDashboard from './components/CoachDashboard';
 
-// The Factory Logic: Redirects users based on their role
-const ProtectedDashboard = ({ children }) => {
-  const user = JSON.parse(localStorage.getItem('user')); // Get user from storage
+const DashboardFactory = () => {
+  const userStr = localStorage.getItem('user');
+  if (!userStr) return <Navigate to="/login" />;
 
-  if (!user) return <Navigate to="/login" />;
+  const user = JSON.parse(userStr);
 
-  // Factory logic: Returns different views based on role
-  // This ensures a Coach never sees a Student's dashboard [cite: 109, 156]
-  return children;
+  // Routes to the correct dashboard based on DB role
+  return user.role === 'Coach' ? <CoachDashboard /> : <StudentDashboard />;
 };
 
 function App() {
@@ -22,17 +23,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* Placeholder for role-based dashboard factory */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedDashboard>
-                {/* DashboardFactory will go here in Phase 3 */}
-                <div style={{color: 'white', textAlign: 'center'}}>Dashboard Loaded</div>
-            </ProtectedDashboard>
-          }
-        />
+        <Route path="/dashboard" element={<DashboardFactory />} />
       </Routes>
     </Router>
   );

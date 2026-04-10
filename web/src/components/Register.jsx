@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../api/authService';
-import '../App.css';
+import './RegisterPage.css'; //
 
 const Register = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('Student');
-  const [formData, setFormData] = useState({ email: '', password: '', full_name: '', role: 'Student', chess_username: '', current_elo: 0 });
+  const [formData, setFormData] = useState({ email: '', password: '', fullName: '', role: 'Student', chessUsername: '', currentElo: 0 });
 
   const handleRoleChange = (newRole) => {
     setRole(newRole);
@@ -18,9 +18,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Ensure ELO is sent as number
-      const submissionData = { ...formData, current_elo: parseInt(formData.current_elo) || 0 };
-      await authService.registerUser(submissionData);
+      await authService.registerUser(formData);
       alert("Registration Successful!");
       navigate('/login');
     } catch (error) {
@@ -29,38 +27,42 @@ const Register = () => {
   };
 
   return (
-    <div>
-      <nav className="navbar">
-        <div className="nav-brand font-serif">CheckMateAcademy</div>
-        <div className="nav-buttons">
-          <button className="nav-btn-white" onClick={() => navigate('/login')}>Login</button>
-          <button className="nav-btn-white" onClick={() => navigate('/register')}>Register</button>
+    <div className="reg-wrapper">
+      <nav className="reg-navbar">
+        <div className="reg-brand">CheckMateAcademy</div>
+        <div className="reg-nav-actions">
+          <button className="reg-nav-btn" onClick={() => navigate('/login')}>Login</button>
+          <button className="reg-nav-btn" onClick={() => navigate('/register')}>Register</button>
         </div>
       </nav>
-      <div className="container">
-        <div className="card">
-          <div className="toggle-group">
-            <button type="button" className={`btn-toggle ${role === 'Student' ? 'active' : ''}`} onClick={() => handleRoleChange('Student')}>Student</button>
-            <button type="button" className={`btn-toggle ${role === 'Coach' ? 'active' : ''}`} onClick={() => handleRoleChange('Coach')}>Coach</button>
+
+      <div className="reg-container">
+        <div className="reg-card">
+          <div className="reg-toggle-group">
+            <button
+              type="button"
+              className={`reg-toggle-btn ${role === 'Student' ? 'reg-toggle-btn-active' : ''}`}
+              onClick={() => handleRoleChange('Student')}>Student</button>
+            <button
+              type="button"
+              className={`reg-toggle-btn ${role === 'Coach' ? 'reg-toggle-btn-active' : ''}`}
+              onClick={() => handleRoleChange('Coach')}>Coach</button>
           </div>
-          <div className="form-grid-inner">
-            <form onSubmit={handleSubmit}>
-              <div className={`grid-layout ${role === 'Coach' ? 'grid-coach' : 'grid-student'}`}>
-                <input name="email" type="email" placeholder="Email" className="input-field reg-input" onChange={handleChange} required />
-                <input name="password" type="password" placeholder="Password" className="input-field reg-input" onChange={handleChange} required />
-                <input name="full_name" type="text" placeholder="Fullname" className="input-field reg-input" onChange={handleChange} required />
 
-                {role === 'Coach' && (
-                  <>
-                    <input name="current_elo" type="number" placeholder="ELO Rating" className="input-field reg-input" onChange={handleChange} required />
-                    <input name="chess_username" type="text" placeholder="Chess Username" className="input-field reg-input" onChange={handleChange} required />
-                  </>
-                )}
+          <div className="reg-white-box">
+            <form onSubmit={handleSubmit} className={`reg-form-grid ${role === 'Coach' ? 'reg-grid-coach' : 'reg-grid-student'}`}>
+              <input name="email" type="email" placeholder="Email" className="reg-input" onChange={handleChange} required />
+              <input name="password" type="password" placeholder="Password" className="reg-input" onChange={handleChange} required />
+              <input name="fullName" type="text" placeholder="Fullname" className="reg-input" onChange={handleChange} required />
 
-                <div style={{gridColumn: role === 'Coach' ? 'span 2' : 'span 1'}}>
-                  <button type="submit" className="btn-reg-brown">Register</button>
-                </div>
-              </div>
+              {role === 'Coach' && (
+                <>
+                  <input name="currentElo" type="number" placeholder="ELO Rating" className="reg-input" onChange={handleChange} required />
+                  <input name="chessUsername" type="text" placeholder="Chess Username" className="reg-input" onChange={handleChange} required />
+                </>
+              )}
+
+              <button type="submit" className="reg-submit-btn">Register</button>
             </form>
           </div>
         </div>

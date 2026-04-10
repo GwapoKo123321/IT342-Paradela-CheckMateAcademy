@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Inter:wght@300;400;700&display=swap');
+
+.landing-wrapper {
+  background-color: #F5F1EA;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  margin: -8px;
+}
+
+.landing-navbar {
+  background-color: #6B4F3A;
+  padding: 1.5rem 5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.landing-brand {
+  color: white;
+  font-size: 2rem;
+  font-family: 'Arvo', serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.landing-nav-actions {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.landing-btn {
+  background-color: white;
+  color: #6B4F3A;
+  border: none;
+  padding: 0.8rem 2.5rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-family: 'Arvo', serif;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.landing-hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 100px);
+  text-align: center;
+  padding: 2rem;
+}
+
+.landing-title {
+  font-size: 5rem;
+  color: #1a1a1a;
+  font-family: 'Arvo', serif;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+}
+
+.landing-divider {
+  width: 120px;
+  border: 2px solid #ccc;
+  margin: 0 auto 2rem auto;
+}
+
+.landing-subtitle {
+  font-size: 1.4rem;
+  color: #555;
+  max-width: 750px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
