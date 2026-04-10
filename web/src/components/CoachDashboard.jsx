@@ -8,12 +8,11 @@ const CoachDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const [lessons, setLessons] = useState([]);
 
-
   useEffect(() => {
     if (user && user.id) {
       loadLessons();
     }
-  }, []);
+  }, [user]);
 
   const loadLessons = async () => {
     try {
@@ -31,7 +30,6 @@ const CoachDashboard = () => {
 
   const handleAction = async (lessonId, action) => {
     try {
-      // Send the Accept or Reject status to the database
       await bookingService.updateLessonStatus(lessonId, action);
       alert(`Booking ${action}ED successfully.`);
       loadLessons();
@@ -85,9 +83,18 @@ const CoachDashboard = () => {
                     <td>
                       {lesson.status === 'PENDING' && (
                         <>
-                          <button onClick={() => handleAction(lesson.id, 'ACCEPTED')} className="coach-action-btn coach-accept">Accept</button>
-                          <button onClick={() => handleAction(lesson.id, 'REJECTED')} className="coach-action-btn coach-reject">Reject</button>
+                          <button onClick={() => handleAction(lesson.id, 'ACCEPTED')} className="coach-action-btn coach-accept font-serif">Accept</button>
+                          <button onClick={() => handleAction(lesson.id, 'REJECTED')} className="coach-action-btn coach-reject font-serif">Reject</button>
                         </>
+                      )}
+                      {lesson.status === 'ACCEPTED' && (
+                        <button
+                          onClick={() => navigate(`/lesson/${lesson.id}`)}
+                          className="coach-action-btn font-serif"
+                          style={{ backgroundColor: '#C29B31' }}
+                        >
+                          Join Lesson
+                        </button>
                       )}
                     </td>
                   </tr>

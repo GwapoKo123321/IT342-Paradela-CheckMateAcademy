@@ -1,11 +1,25 @@
 import apiClient from './apiClient';
 
 const bookLesson = async (bookingData) => {
-    return await apiClient.post('/lessons', bookingData);
+    try {
+        const response = await apiClient.post('/lessons', bookingData);
+        return response.data;
+    } catch (error) {
+        // If the backend sends our custom double-booking error, throw it so the UI can alert it
+        if (error.response && error.response.data && error.response.data.error) {
+            throw new Error(error.response.data.error);
+        }
+        throw new Error("Failed to connect to the server.");
+    }
 };
 
 const getCoachLessons = async (coachId) => {
     const response = await apiClient.get(`/lessons/coach/${coachId}`);
+    return response.data;
+};
+
+const getStudentLessons = async (studentId) => {
+    const response = await apiClient.get(`/lessons/student/${studentId}`);
     return response.data;
 };
 
@@ -14,4 +28,24 @@ const updateLessonStatus = async (lessonId, status) => {
     return response.data;
 };
 
-export default { bookLesson, getCoachLessons, updateLessonStatus };
+const getCoaches = async () => {
+    const response = await apiClient.get('/users/coaches');
+    return response.data;
+};
+
+const getLessonById = async (lessonId) => {
+    const response = await apiClient.get(`/lessons/${lessonId}`);
+    return response.data;
+};
+
+const saveLessonNotes = async (lessonId, notes) => {
+    const response = await apiClient.put(`/lessons/${lessonId}/notes`, notes, {
+        headers: { 'Content-Type': 'text/plain' }
+    });
+    return response.data;
+};
+
+export default {
+    bookLesson, getCoachLessons, getStudentLessons, updateLessonStatus,
+    getCoaches, getLessonById, saveLessonNotes
+};

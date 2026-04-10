@@ -1,14 +1,77 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import bookingService from '../api/bookingService';
 import './StudentDashboard.css';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
 
+  const [activeView, setActiveView] = useState('schedule');
+  const [coaches, setCoaches] = useState([]);
+  const [myLessons, setMyLessons] = useState([]);
+
+  // Booking Form State
+  const [selectedCoachId, setSelectedCoachId] = useState('');
+  const [bookingDate, setBookingDate] = useState('');
+  const [bookingTime, setBookingTime] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (activeView === 'booking') {
+      const fetchCoaches = async () => {
+        try {
+          const coachList = await bookingService.getCoaches();
+          setCoaches(coachList);
+        } catch (error) { console.error("Failed to fetch coaches"); }
+      };
+      fetchCoaches();
+    } else if (activeView === 'schedule') {
+      const fetchLessons = async () => {
+        try {
+          const lessons = await bookingService.getStudentLessons(user.id);
+          setMyLessons(lessons);
+        } catch (error) { console.error("Failed to fetch schedule"); }
+      };
+      fetchLessons();
+    }
+  }, [activeView, user.id]);
+
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
+  };
+
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedCoachId || !bookingDate || !bookingTime) return;
+
+    setIsSubmitting(true);
+    const selectedCoach = coaches.find(c => c.id === selectedCoachId);
+    const startDateTime = new Date(`${bookingDate}T${bookingTime}:00`);
+    const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
+
+    const bookingData = {
+      coachId: selectedCoach.id,
+      studentId: user.id,
+      coachName: selectedCoach.fullName,
+      studentName: user.fullName,
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
+      status: "PENDING"
+    };
+
+    try {
+      await bookingService.bookLesson(bookingData);
+      alert(`Success! Your lesson with ${selectedCoach.fullName} has been requested.`);
+      setSelectedCoachId(''); setBookingDate(''); setBookingTime('');
+      setActiveView('schedule');
+    } catch (error) {
+      // Catches the TIME_CONFLICT error from the Java backend
+      alert(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderBoard = () => {
@@ -37,10 +100,25 @@ const StudentDashboard = () => {
   return (
     <div className="student-layout">
       <aside className="student-sidebar">
-        <h2 className="font-serif">CheckMate</h2>
-        <button className="student-side-btn font-serif">Dashboard</button>
-        <button className="student-side-btn font-serif">Activity</button>
-        <button className="student-side-btn font-serif">Settings</button>
+        <h2 className="font-serif" style={{ textAlign: 'center', marginBottom: '1rem' }}>CheckMate</h2>
+        <button
+          className={`student-side-btn font-serif ${activeView === 'schedule' ? 'student-side-btn-active' : ''}`}
+          onClick={() => setActiveView('schedule')}
+        >
+          My Schedule
+        </button>
+        <button
+          className={`student-side-btn font-serif ${activeView === 'booking' ? 'student-side-btn-active' : ''}`}
+          onClick={() => setActiveView('booking')}
+        >
+          Book a Lesson
+        </button>
+        <button
+          className={`student-side-btn font-serif ${activeView === 'board' ? 'student-side-btn-active' : ''}`}
+          onClick={() => setActiveView('board')}
+        >
+          Training Board
+        </button>
       </aside>
 
       <main className="student-main-content">
@@ -49,13 +127,85 @@ const StudentDashboard = () => {
           <button onClick={handleLogout} className="student-logout-btn font-serif">Logout</button>
         </div>
 
-        <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Training Board</h2>
+        {activeView === 'board' && (
+          <>
+            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Tactics Board</h2>
+            <div className="student-board-container">
+              <div className="student-chess-grid">{renderBoard()}</div>
+            </div>
+          </>
+        )}
 
-        <div className="student-board-container">
-          <div className="student-chess-grid">
-            {renderBoard()}
-          </div>
-        </div>
+        {activeView === 'booking' && (
+          <>
+            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Schedule a Session</h2>
+            <div className="student-booking-section">
+              <form onSubmit={handleBookingSubmit}>
+                <div className="student-form-group">
+                  <label>Select a Coach</label>
+                  <select className="student-select" value={selectedCoachId} onChange={(e) => setSelectedCoachId(e.target.value)} required>
+                    <option value="">-- Choose a Grandmaster --</option>
+                    {coaches.map(coach => (
+                      <option key={coach.id} value={coach.id}>{coach.fullName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="student-form-group">
+                  <label>Select Date</label>
+                  <input type="date" className="student-date-input" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} required />
+                </div>
+                <div className="student-form-group">
+                  <label>Select Time</label>
+                  <input type="time" className="student-date-input" value={bookingTime} onChange={(e) => setBookingTime(e.target.value)} required />
+                </div>
+                <button type="submit" className="student-submit-btn" disabled={isSubmitting}>
+                  {isSubmitting ? 'Requesting...' : 'Confirm Booking'}
+                </button>
+              </form>
+            </div>
+          </>
+        )}
+
+        {activeView === 'schedule' && (
+          <>
+            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>My Schedule</h2>
+            <div className="student-table-container">
+              <table className="student-table">
+                <thead>
+                  <tr>
+                    <th>Coach Name</th>
+                    <th>Date / Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myLessons.length === 0 ? (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>You have no bookings.</td></tr>
+                  ) : (
+                    myLessons.map((lesson) => (
+                      <tr key={lesson.id}>
+                        <td style={{ fontWeight: 'bold' }}>{lesson.coachName || 'Unknown Coach'}</td>
+                        <td>{new Date(lesson.startTime).toLocaleString()}</td>
+                        <td><span className={`status-badge status-${lesson.status}`}>{lesson.status}</span></td>
+                        <td>
+                          {lesson.status === 'ACCEPTED' && (
+                            <button
+                              onClick={() => navigate(`/lesson/${lesson.id}`)}
+                              className="student-action-btn font-serif"
+                            >
+                              Join Lesson
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

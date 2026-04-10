@@ -1,10 +1,14 @@
 .directoryPage { padding: 3rem; background-color: var(--chess-cream); }
 
 .coachGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* This pulls the card from the left edge to the center */
   gap: 2rem;
   margin-top: 3rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .coachCard {

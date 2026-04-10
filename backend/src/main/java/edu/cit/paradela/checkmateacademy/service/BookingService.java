@@ -13,6 +13,15 @@ public class BookingService {
     private LessonRepository lessonRepository;
 
     public Lesson createBooking(Lesson lesson) {
+        // Uses the new overlapping query to prevent bookings inside existing sessions
+        boolean isBooked = lessonRepository.existsOverlappingLesson(
+                lesson.getCoachId(), lesson.getStartTime(), lesson.getEndTime()
+        );
+
+        if (isBooked) {
+            throw new RuntimeException("TIME_CONFLICT");
+        }
+
         lesson.setStatus("PENDING");
         return lessonRepository.save(lesson);
     }
@@ -21,11 +30,24 @@ public class BookingService {
         return lessonRepository.findByCoachIdOrderByStartTimeDesc(coachId);
     }
 
-    // Handles the Accept/Reject logic
+    public List<Lesson> getLessonsForStudent(UUID studentId) {
+        return lessonRepository.findByStudentIdOrderByStartTimeDesc(studentId);
+    }
+
     public Lesson updateLessonStatus(UUID lessonId, String status) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+        Lesson lesson = getLessonById(lessonId);
         lesson.setStatus(status);
+        return lessonRepository.save(lesson);
+    }
+
+    public Lesson getLessonById(UUID lessonId) {
+        return lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+    }
+
+    public Lesson saveLessonNotes(UUID lessonId, String notes) {
+        Lesson lesson = getLessonById(lessonId);
+        lesson.setNotes(notes);
         return lessonRepository.save(lesson);
     }
 }

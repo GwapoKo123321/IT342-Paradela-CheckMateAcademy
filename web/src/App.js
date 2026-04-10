@@ -5,14 +5,12 @@ import Login from './components/Login';
 import Register from './components/Register';
 import StudentDashboard from './components/StudentDashboard';
 import CoachDashboard from './components/CoachDashboard';
+import ActiveLesson from './components/ActiveLesson';
 
 const DashboardFactory = () => {
   const userStr = localStorage.getItem('user');
   if (!userStr) return <Navigate to="/login" />;
-
   const user = JSON.parse(userStr);
-
-  // Routes to the correct dashboard based on DB role
   return user.role === 'Coach' ? <CoachDashboard /> : <StudentDashboard />;
 };
 
@@ -24,6 +22,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<DashboardFactory />} />
+
+        {/* NEW: The Active Lesson Route */}
+        <Route path="/lesson/:id" element={<ActiveLesson />} />
       </Routes>
     </Router>
   );

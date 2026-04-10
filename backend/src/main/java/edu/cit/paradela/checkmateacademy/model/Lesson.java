@@ -31,5 +31,9 @@ public class Lesson {
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
-    private String status = "PENDING"; // PENDING, ACCEPTED, REJECTED
+    private String status = "PENDING";
+
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }
