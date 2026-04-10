@@ -1,15 +1,17 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:8080/api/auth';
+import apiClient from './apiClient'; // Using the Singleton
 
 const registerUser = async (userData) => {
-    return await axios.post(`${API_URL}/register`, userData);
+    // Facade: Simplifies the call for the UI components
+    return await apiClient.post('/auth/register', userData);
 };
 
 const loginUser = async (credentials) => {
-    return await axios.post(`${API_URL}/login`, credentials);
+    const response = await apiClient.post('/auth/login', credentials);
+    if (response.data.accessToken) {
+        localStorage.setItem('token', response.data.accessToken); // Aligns with SDD [cite: 198]
+    }
+    return response.data;
 };
-
 
 const authService = {
     registerUser,
