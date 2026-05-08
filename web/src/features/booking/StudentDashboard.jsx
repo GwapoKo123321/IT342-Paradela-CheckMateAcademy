@@ -84,7 +84,7 @@ const StudentDashboard = () => {
 
       const fetchAvailableSlots = async () => {
         try {
-          const filters = { date: bookingDate };
+          const filters = { date: bookingDate, studentId: user.id };
           if (preferredStyle) filters.style = preferredStyle;
 
           const slots = await bookingService.getAvailableSlots(filters);
@@ -122,6 +122,10 @@ const StudentDashboard = () => {
     e.preventDefault();
     const selectedSlot = availableSlots.find(slot => getSlotKey(slot) === selectedSlotKey);
     if (!selectedSlot) return;
+    if (selectedSlot.studentConflict) {
+      alert("This time conflicts with another lesson already on your schedule.");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -381,24 +385,32 @@ const StudentDashboard = () => {
                         {bookingDate ? 'No bookable lesson times match this date and playstyle yet.' : 'Choose a date to see precise coach availability.'}
                       </div>
                     ) : (
-                      availableSlots.map(slot => (
-                        <button
-                          type="button"
-                          key={getSlotKey(slot)}
-                          className={`student-coach-card ${selectedSlotKey === getSlotKey(slot) ? 'student-coach-card-active' : ''}`}
-                          onClick={() => setSelectedSlotKey(getSlotKey(slot))}
-                        >
-                          <div>
-                            <strong>{slot.coachName}</strong>
-                            <span>{formatSlotTime(slot.startTime)} - {formatSlotTime(slot.endTime)}</span>
-                          </div>
-                          <p>{slot.specialties || 'No playstyle listed yet.'}</p>
-                          <div className="student-slot-meta">
-                            <span>{bookingDate ? formatBookingDate(bookingDate) : 'Selected date'}</span>
-                            <span>{slot.currentElo || 0} ELO</span>
-                          </div>
-                        </button>
-                      ))
+                      availableSlots.map(slot => {
+                        const isConflicting = Boolean(slot.studentConflict);
+
+                        return (
+                          <button
+                            type="button"
+                            key={getSlotKey(slot)}
+                            className={`student-coach-card ${selectedSlotKey === getSlotKey(slot) ? 'student-coach-card-active' : ''} ${isConflicting ? 'student-coach-card-conflict' : ''}`}
+                            onClick={() => {
+                              if (!isConflicting) setSelectedSlotKey(getSlotKey(slot));
+                            }}
+                            disabled={isConflicting}
+                          >
+                            <div>
+                              <strong>{slot.coachName}</strong>
+                              <span>{formatSlotTime(slot.startTime)} - {formatSlotTime(slot.endTime)}</span>
+                            </div>
+                            <p>{slot.specialties || 'No playstyle listed yet.'}</p>
+                            <div className="student-slot-meta">
+                              <span>{bookingDate ? formatBookingDate(bookingDate) : 'Selected date'}</span>
+                              <span>{slot.currentElo || 0} ELO</span>
+                              {isConflicting && <span className="student-conflict-chip">{slot.conflictLabel || 'Schedule conflict'}</span>}
+                            </div>
+                          </button>
+                        );
+                      })
                     )}
                   </div>
                 </div>

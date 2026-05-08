@@ -17,6 +17,12 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID> {
     @Query("SELECT COUNT(l) > 0 FROM Lesson l WHERE l.coachId = :coachId AND l.status != 'REJECTED' AND l.startTime < :endTime AND l.endTime > :startTime")
     boolean existsOverlappingLesson(@Param("coachId") UUID coachId, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
+    @Query("SELECT COUNT(l) > 0 FROM Lesson l WHERE l.studentId = :studentId AND l.status != 'REJECTED' AND l.startTime < :endTime AND l.endTime > :startTime")
+    boolean existsOverlappingStudentLesson(@Param("studentId") UUID studentId, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+
     @Query("SELECT l FROM Lesson l WHERE l.coachId = :coachId AND l.status != 'REJECTED' AND l.startTime < :endTime AND l.endTime > :startTime")
     List<Lesson> findOverlappingLessons(@Param("coachId") UUID coachId, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+
+    @Query("SELECT l FROM Lesson l WHERE l.studentId = :studentId AND l.status != 'REJECTED' AND l.startTime < :endTime AND l.endTime > :startTime")
+    List<Lesson> findOverlappingStudentLessons(@Param("studentId") UUID studentId, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 }

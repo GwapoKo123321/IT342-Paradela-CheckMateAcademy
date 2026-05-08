@@ -24,7 +24,9 @@
 .coach-availability-list { display: flex; flex-direction: column; gap: 0.8rem; }
 .coach-empty-slots { color: #7d6b5d; background-color: #F5F1EA; padding: 1rem; border-radius: 14px; margin: 0; }
 .coach-slot-row { display: grid; grid-template-columns: minmax(140px, 1fr) 130px auto 130px auto; gap: 0.7rem; align-items: center; background-color: #F5F1EA; border-radius: 16px; padding: 0.9rem; }
+.coach-slot-row-error { border: 2px solid #F44336; background-color: #FFF1EF; }
 .coach-slot-row select, .coach-slot-row input { border: 1px solid #E0D8C8; border-radius: 10px; padding: 0.7rem; background-color: white; color: #333; }
+.coach-slot-error { color: #B42318; font-weight: 800; margin: -0.3rem 0 0.3rem; padding-left: 0.3rem; }
 .coach-remove-slot-btn { background-color: #F44336; color: white; border: none; border-radius: 999px; padding: 0.7rem 1rem; font-weight: 800; cursor: pointer; }
 .coach-save-profile-btn { width: 100%; margin-top: 1.5rem; padding: 1rem; font-size: 1.05rem; }
 .coach-save-profile-btn:disabled { opacity: 0.6; cursor: not-allowed; }

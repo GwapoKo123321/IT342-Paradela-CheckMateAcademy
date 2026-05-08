@@ -13,8 +13,10 @@ public class CoachAvailableSlotResponse {
     private String bio;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private boolean studentConflict;
+    private String conflictLabel;
 
-    public CoachAvailableSlotResponse(CoachProfileResponse coach, LocalDateTime startTime, LocalDateTime endTime) {
+    public CoachAvailableSlotResponse(CoachProfileResponse coach, LocalDateTime startTime, LocalDateTime endTime, boolean studentConflict) {
         this.coachId = coach.getId();
         this.coachName = coach.getFullName();
         this.currentElo = coach.getCurrentElo();
@@ -22,5 +24,7 @@ public class CoachAvailableSlotResponse {
         this.bio = coach.getBio();
         this.startTime = startTime;
         this.endTime = endTime;
+        this.studentConflict = studentConflict;
+        this.conflictLabel = studentConflict ? "Schedule conflict" : null;
     }
 }

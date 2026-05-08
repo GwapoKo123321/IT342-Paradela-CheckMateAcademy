@@ -45,12 +45,13 @@ public class UserController {
     @GetMapping("/coaches/available-slots")
     public ResponseEntity<?> getAvailableCoachSlots(
             @RequestParam String date,
-            @RequestParam(required = false) String style
+            @RequestParam(required = false) String style,
+            @RequestParam(required = false) UUID studentId
     ) {
         try {
             LocalDate parsedDate = LocalDate.parse(date);
             List<User> coaches = userRepository.findByRole("Coach");
-            List<CoachAvailableSlotResponse> slots = coachProfileService.findAvailableLessonSlots(coaches, parsedDate, style);
+            List<CoachAvailableSlotResponse> slots = coachProfileService.findAvailableLessonSlots(coaches, parsedDate, style, studentId);
             return ResponseEntity.ok(slots);
         } catch (DateTimeParseException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Please choose a valid booking date."));
@@ -64,12 +65,19 @@ public class UserController {
     }
 
     @PutMapping("/coaches/{coachId}/profile")
-    public ResponseEntity<CoachProfileResponse> updateCoachProfile(
+    public ResponseEntity<?> updateCoachProfile(
             @PathVariable UUID coachId,
             @RequestBody CoachProfileRequest request
     ) {
-        User coach = userRepository.findById(coachId).orElseThrow(() -> new RuntimeException("Coach not found"));
-        return ResponseEntity.ok(coachProfileService.saveProfile(coach, request));
+        try {
+            User coach = userRepository.findById(coachId).orElseThrow(() -> new RuntimeException("Coach not found"));
+            return ResponseEntity.ok(coachProfileService.saveProfile(coach, request));
+        } catch (RuntimeException e) {
+            if ("OVERLAPPING_AVAILABILITY_SLOT".equals(e.getMessage())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Availability slots on the same day cannot overlap."));
+            }
+            throw e;
+        }
     }
 
     private LocalDateTime parseDateTime(String value) {

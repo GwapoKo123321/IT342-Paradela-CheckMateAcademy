@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bookingService from './bookingService';
 
@@ -16,6 +16,64 @@ const DAY_OPTIONS = [
 
 const COACH_VIEWS = ['schedule', 'reviews', 'profile'];
 
+const toMinutes = (time) => {
+  if (!time) return null;
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const availabilitySlotsOverlap = (first, second) => {
+  if (!first.dayOfWeek || !first.startTime || !first.endTime) return false;
+  if (!second.dayOfWeek || !second.startTime || !second.endTime) return false;
+  if (Number(first.dayOfWeek) !== Number(second.dayOfWeek)) return false;
+
+  const firstStart = toMinutes(first.startTime);
+  const firstEnd = toMinutes(first.endTime);
+  const secondStart = toMinutes(second.startTime);
+  const secondEnd = toMinutes(second.endTime);
+
+  if (firstStart === null || firstEnd === null || secondStart === null || secondEnd === null) return false;
+  if (firstEnd <= firstStart || secondEnd <= secondStart) return false;
+
+  return firstStart < secondEnd && firstEnd > secondStart;
+};
+
+const getOverlappingAvailabilityIndexes = (availability) => {
+  const overlappingIndexes = new Set();
+
+  availability.forEach((slot, index) => {
+    availability.forEach((compareSlot, compareIndex) => {
+      if (index >= compareIndex) return;
+      if (availabilitySlotsOverlap(slot, compareSlot)) {
+        overlappingIndexes.add(index);
+        overlappingIndexes.add(compareIndex);
+      }
+    });
+  });
+
+  return overlappingIndexes;
+};
+
+const formatHour = (hour) => `${String(hour).padStart(2, '0')}:00`;
+
+const findNextAvailableSlot = (availability) => {
+  for (const day of DAY_OPTIONS) {
+    for (let startHour = 9; startHour < 17; startHour += 1) {
+      const slot = {
+        dayOfWeek: day.value,
+        startTime: formatHour(startHour),
+        endTime: formatHour(startHour + 1)
+      };
+
+      if (availability.every(existingSlot => !availabilitySlotsOverlap(slot, existingSlot))) {
+        return slot;
+      }
+    }
+  }
+
+  return { dayOfWeek: 1, startTime: '09:00', endTime: '10:00' };
+};
+
 const CoachDashboard = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -27,6 +85,11 @@ const CoachDashboard = () => {
   });
   const [profile, setProfile] = useState({ specialties: '', bio: '', availability: [] });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const overlappingAvailabilityIndexes = useMemo(
+    () => getOverlappingAvailabilityIndexes(profile.availability),
+    [profile.availability]
+  );
+  const hasOverlappingAvailabilitySlots = overlappingAvailabilityIndexes.size > 0;
 
   const loadLessons = useCallback(async () => {
     try {
@@ -92,7 +155,7 @@ const CoachDashboard = () => {
       ...prev,
       availability: [
         ...prev.availability,
-        { dayOfWeek: 1, startTime: '09:00', endTime: '10:00' }
+        findNextAvailableSlot(prev.availability)
       ]
     }));
   };
@@ -115,6 +178,12 @@ const CoachDashboard = () => {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+
+    if (hasOverlappingAvailabilitySlots) {
+      alert("Availability slots on the same day cannot overlap.");
+      return;
+    }
+
     setIsSavingProfile(true);
 
     try {
@@ -126,7 +195,7 @@ const CoachDashboard = () => {
       });
       alert("Profile and availability saved.");
     } catch (error) {
-      alert("Failed to save profile.");
+      alert(error.response?.data?.error || "Failed to save profile.");
     } finally {
       setIsSavingProfile(false);
     }
@@ -246,21 +315,30 @@ const CoachDashboard = () => {
                 {profile.availability.length === 0 ? (
                   <p className="coach-empty-slots">Add at least one time slot so students can book you.</p>
                 ) : (
-                  profile.availability.map((slot, index) => (
-                    <div className="coach-slot-row" key={`${slot.dayOfWeek}-${slot.startTime}-${index}`}>
-                      <select value={slot.dayOfWeek} onChange={(e) => updateAvailabilitySlot(index, 'dayOfWeek', e.target.value)}>
-                        {DAY_OPTIONS.map(day => <option key={day.value} value={day.value}>{day.label}</option>)}
-                      </select>
-                      <input type="time" value={slot.startTime || ''} onChange={(e) => updateAvailabilitySlot(index, 'startTime', e.target.value)} />
-                      <span>to</span>
-                      <input type="time" value={slot.endTime || ''} onChange={(e) => updateAvailabilitySlot(index, 'endTime', e.target.value)} />
-                      <button type="button" className="coach-remove-slot-btn" onClick={() => removeAvailabilitySlot(index)}>Remove</button>
-                    </div>
-                  ))
+                  profile.availability.map((slot, index) => {
+                    const isOverlapping = overlappingAvailabilityIndexes.has(index);
+
+                    return (
+                      <React.Fragment key={`${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}-${index}`}>
+                        <div className={`coach-slot-row ${isOverlapping ? 'coach-slot-row-error' : ''}`}>
+                          <select value={slot.dayOfWeek} onChange={(e) => updateAvailabilitySlot(index, 'dayOfWeek', e.target.value)}>
+                            {DAY_OPTIONS.map(day => <option key={day.value} value={day.value}>{day.label}</option>)}
+                          </select>
+                          <input type="time" value={slot.startTime || ''} onChange={(e) => updateAvailabilitySlot(index, 'startTime', e.target.value)} />
+                          <span>to</span>
+                          <input type="time" value={slot.endTime || ''} onChange={(e) => updateAvailabilitySlot(index, 'endTime', e.target.value)} />
+                          <button type="button" className="coach-remove-slot-btn" onClick={() => removeAvailabilitySlot(index)}>Remove</button>
+                        </div>
+                        {isOverlapping && (
+                          <p className="coach-slot-error">Availability slots on the same day cannot overlap.</p>
+                        )}
+                      </React.Fragment>
+                    );
+                  })
                 )}
               </div>
 
-              <button type="submit" className="coach-save-profile-btn" disabled={isSavingProfile}>
+              <button type="submit" className="coach-save-profile-btn" disabled={isSavingProfile || hasOverlappingAvailabilitySlots}>
                 {isSavingProfile ? 'Saving...' : 'Save Profile'}
               </button>
             </form>

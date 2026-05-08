@@ -60,10 +60,12 @@
 .student-no-coaches { background-color: #F5F1EA; color: #7d6b5d; border-radius: 16px; padding: 1rem; text-align: center; }
 .student-coach-card { width: 100%; text-align: left; border: 2px solid #E0D8C8; background-color: white; color: #333; border-radius: 18px; padding: 1rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.7rem; }
 .student-coach-card-active { border-color: #C29B31; box-shadow: 0 0 0 3px rgba(194,155,49,0.2); }
+.student-coach-card-conflict { border-color: #F4A261; background-color: #FFF7EC; cursor: not-allowed; opacity: 0.86; }
 .student-coach-card div:first-child { display: flex; justify-content: space-between; gap: 1rem; color: #6B4F3A; }
 .student-coach-card p { margin: 0; color: #555; line-height: 1.4; }
 .student-slot-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .student-slot-meta span { background-color: #F5F1EA; color: #6B4F3A; border-radius: 999px; padding: 0.35rem 0.7rem; font-size: 0.85rem; font-weight: 700; }
+.student-slot-meta .student-conflict-chip { background-color: #F8D7DA; color: #721C24; }
 .student-availability-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .student-availability-chips span { background-color: #F5F1EA; color: #6B4F3A; border-radius: 999px; padding: 0.35rem 0.7rem; font-size: 0.85rem; font-weight: 700; }
 

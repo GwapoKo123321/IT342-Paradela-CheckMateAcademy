@@ -25,6 +25,11 @@ public class LessonService {
         );
         if (isBooked) throw new RuntimeException("TIME_CONFLICT");
 
+        boolean studentAlreadyBooked = lessonRepository.existsOverlappingStudentLesson(
+                lesson.getStudentId(), lesson.getStartTime(), lesson.getEndTime()
+        );
+        if (studentAlreadyBooked) throw new RuntimeException("STUDENT_TIME_CONFLICT");
+
         lesson.setStatus("PENDING");
         return lessonRepository.save(lesson);
     }

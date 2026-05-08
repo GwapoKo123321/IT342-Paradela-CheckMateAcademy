@@ -26,6 +26,9 @@ public class LessonController {
             if ("TIME_CONFLICT".equals(e.getMessage())) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Booking not available. This coach already has a session at this time."));
             }
+            if ("STUDENT_TIME_CONFLICT".equals(e.getMessage())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "You already have a lesson booked during this time."));
+            }
             return ResponseEntity.internalServerError().body(Map.of("error", "An unexpected error occurred."));
         }
     }

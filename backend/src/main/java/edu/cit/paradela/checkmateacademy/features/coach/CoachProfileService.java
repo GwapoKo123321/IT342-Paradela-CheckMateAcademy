@@ -44,11 +44,14 @@ public class CoachProfileService {
                 .toList();
     }
 
-    public List<CoachAvailableSlotResponse> findAvailableLessonSlots(List<User> coaches, LocalDate date, String style) {
+    public List<CoachAvailableSlotResponse> findAvailableLessonSlots(List<User> coaches, LocalDate date, String style, UUID studentId) {
         LocalDateTime dayStart = date.atStartOfDay();
         LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
         LocalDateTime now = LocalDateTime.now();
         int dayOfWeek = date.getDayOfWeek().getValue();
+        List<Lesson> studentBookedLessons = studentId == null
+                ? List.of()
+                : lessonRepository.findOverlappingStudentLessons(studentId, dayStart, dayEnd);
 
         return coaches.stream()
                 .map(this::buildResponse)
@@ -57,7 +60,7 @@ public class CoachProfileService {
                     List<Lesson> bookedLessons = lessonRepository.findOverlappingLessons(coach.getId(), dayStart, dayEnd);
                     return coach.getAvailability().stream()
                             .filter(slot -> dayOfWeek == slot.getDayOfWeek())
-                            .flatMap(slot -> buildBookableSlots(coach, slot, date, bookedLessons, now).stream());
+                            .flatMap(slot -> buildBookableSlots(coach, slot, date, bookedLessons, studentBookedLessons, now).stream());
                 })
                 .distinct()
                 .sorted((first, second) -> first.getStartTime().compareTo(second.getStartTime()))
@@ -66,6 +69,10 @@ public class CoachProfileService {
 
     @Transactional
     public CoachProfileResponse saveProfile(User coach, CoachProfileRequest request) {
+        if (hasOverlappingAvailabilitySlot(request.getAvailability())) {
+            throw new RuntimeException("OVERLAPPING_AVAILABILITY_SLOT");
+        }
+
         CoachProfile profile = coachProfileRepository.findByCoachId(coach.getId()).orElseGet(CoachProfile::new);
         profile.setCoachId(coach.getId());
         profile.setSpecialties(request.getSpecialties());
@@ -90,6 +97,35 @@ public class CoachProfileService {
         return buildResponse(coach);
     }
 
+    private boolean hasOverlappingAvailabilitySlot(List<CoachAvailability> availability) {
+        if (availability == null) return false;
+
+        for (int currentIndex = 0; currentIndex < availability.size(); currentIndex++) {
+            CoachAvailability current = availability.get(currentIndex);
+            if (!isValidAvailabilitySlot(current)) continue;
+
+            for (int compareIndex = currentIndex + 1; compareIndex < availability.size(); compareIndex++) {
+                CoachAvailability compare = availability.get(compareIndex);
+                if (!isValidAvailabilitySlot(compare)) continue;
+
+                boolean sameDay = current.getDayOfWeek().equals(compare.getDayOfWeek());
+                boolean overlaps = current.getStartTime().isBefore(compare.getEndTime())
+                        && current.getEndTime().isAfter(compare.getStartTime());
+
+                if (sameDay && overlaps) return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isValidAvailabilitySlot(CoachAvailability slot) {
+        return slot.getDayOfWeek() != null
+                && slot.getStartTime() != null
+                && slot.getEndTime() != null
+                && slot.getEndTime().isAfter(slot.getStartTime());
+    }
+
     public boolean isCoachAvailable(UUID coachId, LocalDateTime startTime, LocalDateTime endTime) {
         int dayOfWeek = startTime.getDayOfWeek().getValue();
         return coachAvailabilityRepository.findByCoachIdAndDayOfWeek(coachId, dayOfWeek).stream()
@@ -104,6 +140,7 @@ public class CoachProfileService {
             CoachAvailability availability,
             LocalDate date,
             List<Lesson> bookedLessons,
+            List<Lesson> studentBookedLessons,
             LocalDateTime now
     ) {
         LocalDateTime cursor = LocalDateTime.of(date, availability.getStartTime());
@@ -114,8 +151,11 @@ public class CoachProfileService {
             LocalDateTime slotStart = cursor;
             LocalDateTime slotEnd = cursor.plusMinutes(LESSON_LENGTH_MINUTES);
 
-            if (slotStart.isAfter(now) && bookedLessons.stream().noneMatch(lesson -> overlaps(lesson, slotStart, slotEnd))) {
-                slots.add(new CoachAvailableSlotResponse(coach, slotStart, slotEnd));
+            boolean coachIsBooked = bookedLessons.stream().anyMatch(lesson -> overlaps(lesson, slotStart, slotEnd));
+            boolean studentHasConflict = studentBookedLessons.stream().anyMatch(lesson -> overlaps(lesson, slotStart, slotEnd));
+
+            if (slotStart.isAfter(now) && !coachIsBooked) {
+                slots.add(new CoachAvailableSlotResponse(coach, slotStart, slotEnd, studentHasConflict));
             }
 
             cursor = cursor.plusMinutes(SLOT_STEP_MINUTES);
