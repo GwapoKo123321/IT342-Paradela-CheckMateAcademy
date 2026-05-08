@@ -27,8 +27,23 @@ const updateLessonStatus = async (lessonId, status) => {
     return response.data;
 };
 
-const getCoaches = async () => {
-    const response = await apiClient.get('/users/coaches');
+const getCoaches = async (filters = {}) => {
+    const response = await apiClient.get('/users/coaches', { params: filters });
+    return response.data;
+};
+
+const getAvailableSlots = async (filters = {}) => {
+    const response = await apiClient.get('/users/coaches/available-slots', { params: filters });
+    return response.data;
+};
+
+const getCoachProfile = async (coachId) => {
+    const response = await apiClient.get(`/users/coaches/${coachId}/profile`);
+    return response.data;
+};
+
+const saveCoachProfile = async (coachId, profile) => {
+    const response = await apiClient.put(`/users/coaches/${coachId}/profile`, profile);
     return response.data;
 };
 
@@ -38,21 +53,19 @@ const getLessonById = async (lessonId) => {
 };
 
 const saveLessonNotes = async (lessonId, notes) => {
-    const response = await apiClient.put(`/lessons/${lessonId}/notes`, notes, {
-        headers: { 'Content-Type': 'text/plain' }
-    });
+    const response = await apiClient.put(`/lessons/${lessonId}/notes`, { notes: notes });
     return response.data;
 };
 
-
-const updateBoardState = async (lessonId, boardState) => {
-    const response = await apiClient.put(`/lessons/${lessonId}/board`, boardState, {
-        headers: { 'Content-Type': 'text/plain' }
+const updateBoardState = async (lessonId, fen, pgn) => {
+    const response = await apiClient.put(`/lessons/${lessonId}/board`, {
+        boardState: fen,
+        pgnHistory: pgn
     });
     return response.data;
 };
 
 export default {
     bookLesson, getCoachLessons, getStudentLessons, updateLessonStatus,
-    getCoaches, getLessonById, saveLessonNotes, updateBoardState
+    getCoaches, getAvailableSlots, getCoachProfile, saveCoachProfile, getLessonById, saveLessonNotes, updateBoardState
 };

@@ -13,13 +13,16 @@ import java.util.UUID;
 public class LessonController {
 
     @Autowired
-    private LessonService lessonService; // Corrected from bookingService for consistency
+    private LessonService lessonService;
 
     @PostMapping
     public ResponseEntity<?> bookLesson(@RequestBody Lesson lesson) {
         try {
             return ResponseEntity.ok(lessonService.createBooking(lesson));
         } catch (RuntimeException e) {
+            if ("COACH_UNAVAILABLE".equals(e.getMessage())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "This coach is not available at the selected time."));
+            }
             if ("TIME_CONFLICT".equals(e.getMessage())) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Booking not available. This coach already has a session at this time."));
             }
@@ -47,14 +50,18 @@ public class LessonController {
         return ResponseEntity.ok(lessonService.getLessonById(lessonId));
     }
 
+    // UPDATED: Uses Map to correctly extract the "notes" value from the JSON payload
     @PutMapping("/{lessonId}/notes")
-    public ResponseEntity<Lesson> updateNotes(@PathVariable UUID lessonId, @RequestBody String notes) {
+    public ResponseEntity<Lesson> updateNotes(@PathVariable UUID lessonId, @RequestBody Map<String, String> payload) {
+        String notes = payload.get("notes");
         return ResponseEntity.ok(lessonService.saveLessonNotes(lessonId, notes));
     }
 
-    // NEW: Endpoint to receive board state updates
+    // UPDATED: Uses Map to extract both FEN and PGN from the JSON payload
     @PutMapping("/{lessonId}/board")
-    public ResponseEntity<Lesson> updateBoardState(@PathVariable UUID lessonId, @RequestBody String boardState) {
-        return ResponseEntity.ok(lessonService.updateBoardState(lessonId, boardState));
+    public ResponseEntity<Lesson> updateBoardState(@PathVariable UUID lessonId, @RequestBody Map<String, String> payload) {
+        String boardState = payload.get("boardState");
+        String pgnHistory = payload.get("pgnHistory");
+        return ResponseEntity.ok(lessonService.updateBoardState(lessonId, boardState, pgnHistory));
     }
 }

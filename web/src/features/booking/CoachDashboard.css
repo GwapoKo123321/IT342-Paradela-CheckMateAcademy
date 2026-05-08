@@ -13,6 +13,27 @@
 
 .coach-table-container { background-color: white; padding: 2.5rem; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 1000px; overflow-x: auto; margin: 0 auto; }
 
+.coach-profile-form { background-color: white; padding: 2.5rem; border-radius: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 900px; box-sizing: border-box; }
+.coach-form-group { display: flex; flex-direction: column; text-align: left; gap: 0.6rem; margin-bottom: 1.4rem; }
+.coach-form-group label { color: #6B4F3A; font-weight: 800; font-family: 'Arvo', serif; }
+.coach-form-group input, .coach-form-group textarea { width: 100%; box-sizing: border-box; border: 2px solid #E0D8C8; border-radius: 16px; background-color: #F5F1EA; padding: 1rem; color: #333; font-size: 1rem; outline: none; }
+.coach-form-group textarea { min-height: 110px; resize: vertical; }
+.coach-availability-header { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin: 1.5rem 0 1rem; }
+.coach-availability-header h3 { color: #6B4F3A; margin: 0; font-size: 1.5rem; }
+.coach-add-slot-btn, .coach-save-profile-btn { background-color: #6B4F3A; color: white; border: none; border-radius: 999px; padding: 0.8rem 1.4rem; font-weight: 800; cursor: pointer; }
+.coach-availability-list { display: flex; flex-direction: column; gap: 0.8rem; }
+.coach-empty-slots { color: #7d6b5d; background-color: #F5F1EA; padding: 1rem; border-radius: 14px; margin: 0; }
+.coach-slot-row { display: grid; grid-template-columns: minmax(140px, 1fr) 130px auto 130px auto; gap: 0.7rem; align-items: center; background-color: #F5F1EA; border-radius: 16px; padding: 0.9rem; }
+.coach-slot-row select, .coach-slot-row input { border: 1px solid #E0D8C8; border-radius: 10px; padding: 0.7rem; background-color: white; color: #333; }
+.coach-remove-slot-btn { background-color: #F44336; color: white; border: none; border-radius: 999px; padding: 0.7rem 1rem; font-weight: 800; cursor: pointer; }
+.coach-save-profile-btn { width: 100%; margin-top: 1.5rem; padding: 1rem; font-size: 1.05rem; }
+.coach-save-profile-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@media (max-width: 800px) {
+  .coach-slot-row { grid-template-columns: 1fr; }
+  .coach-availability-header { align-items: stretch; flex-direction: column; }
+}
+
 .coach-table { width: 100%; border-collapse: collapse; text-align: left; }
 .coach-table th { background-color: #6B4F3A; color: white; padding: 1.2rem; font-family: 'Arvo', serif; font-size: 1.1rem; }
 .coach-table th:first-child { border-top-left-radius: 15px; border-bottom-left-radius: 15px; }

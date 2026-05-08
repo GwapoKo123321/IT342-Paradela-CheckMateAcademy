@@ -1,5 +1,6 @@
 package edu.cit.paradela.checkmateacademy.features.lesson;
 
+import edu.cit.paradela.checkmateacademy.features.coach.CoachProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -11,7 +12,14 @@ public class LessonService {
     @Autowired
     private LessonRepository lessonRepository;
 
+    @Autowired
+    private CoachProfileService coachProfileService;
+
     public Lesson createBooking(Lesson lesson) {
+        if (!coachProfileService.isCoachAvailable(lesson.getCoachId(), lesson.getStartTime(), lesson.getEndTime())) {
+            throw new RuntimeException("COACH_UNAVAILABLE");
+        }
+
         boolean isBooked = lessonRepository.existsOverlappingLesson(
                 lesson.getCoachId(), lesson.getStartTime(), lesson.getEndTime()
         );
@@ -46,10 +54,11 @@ public class LessonService {
         return lessonRepository.save(lesson);
     }
 
-    // NEW: Saves the live piece movements
-    public Lesson updateBoardState(UUID lessonId, String boardState) {
+    // UPDATED: Saves both the live piece movements (FEN) and history (PGN)
+    public Lesson updateBoardState(UUID lessonId, String boardState, String pgnHistory) {
         Lesson lesson = getLessonById(lessonId);
         lesson.setBoardState(boardState);
+        lesson.setPgnHistory(pgnHistory);
         return lessonRepository.save(lesson);
     }
 }

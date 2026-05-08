@@ -1,42 +1,117 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Chess } from 'chess.js';
+import { Chessboard } from 'react-chessboard';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  RefreshCw,
+  RotateCcw
+} from 'lucide-react';
 import bookingService from './bookingService';
 
 import './StudentDashboard.css';
 
+const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+const PLAYSTYLE_OPTIONS = [
+  'Aggressive openings',
+  'Defensive play',
+  'Endgames',
+  'Positional play',
+  'Tactics',
+  'Strategy',
+];
+
+const STUDENT_VIEWS = ['schedule', 'reviews', 'booking', 'board'];
+
+const formatLocalDateTime = (date) => {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+};
+
+const getSlotKey = (slot) => `${slot.coachId}-${slot.startTime}`;
+
+const formatSlotTime = (value) => new Date(value).toLocaleTimeString([], {
+  hour: 'numeric',
+  minute: '2-digit'
+});
+
+const formatBookingDate = (value) => new Date(`${value}T00:00:00`).toLocaleDateString([], {
+  weekday: 'long',
+  month: 'short',
+  day: 'numeric'
+});
+
 const StudentDashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const activeViewStorageKey = `student-dashboard-view-${user.id || 'guest'}`;
 
-  const [activeView, setActiveView] = useState('schedule');
-  const [coaches, setCoaches] = useState([]);
+  const [activeView, setActiveView] = useState(() => {
+    const savedView = localStorage.getItem(activeViewStorageKey);
+    return STUDENT_VIEWS.includes(savedView) ? savedView : 'schedule';
+  });
+  const [availableSlots, setAvailableSlots] = useState([]);
   const [myLessons, setMyLessons] = useState([]);
 
-  // Booking Form State
-  const [selectedCoachId, setSelectedCoachId] = useState('');
+  const [selectedSlotKey, setSelectedSlotKey] = useState('');
   const [bookingDate, setBookingDate] = useState('');
-  const [bookingTime, setBookingTime] = useState('');
+  const [preferredStyle, setPreferredStyle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [trainingFen, setTrainingFen] = useState(START_FEN);
+  const [trainingMoves, setTrainingMoves] = useState([]);
+  const [trainingHistory, setTrainingHistory] = useState([]);
+  const [trainingViewIndex, setTrainingViewIndex] = useState(-1);
+  const [trainingOrientation, setTrainingOrientation] = useState('white');
+
+  const todayInputValue = formatLocalDateTime(new Date()).slice(0, 10);
+
+  useEffect(() => {
+    localStorage.setItem(activeViewStorageKey, activeView);
+  }, [activeView, activeViewStorageKey]);
 
   useEffect(() => {
     if (activeView === 'booking') {
-      const fetchCoaches = async () => {
+      if (!bookingDate) {
+        setAvailableSlots([]);
+        setSelectedSlotKey('');
+        return;
+      }
+
+      const fetchAvailableSlots = async () => {
         try {
-          const coachList = await bookingService.getCoaches();
-          setCoaches(coachList);
-        } catch (error) { console.error("Failed to fetch coaches"); }
+          const filters = { date: bookingDate };
+          if (preferredStyle) filters.style = preferredStyle;
+
+          const slots = await bookingService.getAvailableSlots(filters);
+          setAvailableSlots(slots);
+          setSelectedSlotKey(prev => (
+            prev && !slots.some(slot => getSlotKey(slot) === prev) ? '' : prev
+          ));
+        } catch (error) {
+          console.error("Failed to fetch available slots");
+          setAvailableSlots([]);
+          setSelectedSlotKey('');
+        }
       };
-      fetchCoaches();
+
+      fetchAvailableSlots();
     } else if (activeView === 'schedule' || activeView === 'reviews') {
       const fetchLessons = async () => {
         try {
           const lessons = await bookingService.getStudentLessons(user.id);
           setMyLessons(lessons);
-        } catch (error) { console.error("Failed to fetch schedule"); }
+        } catch (error) {
+          console.error("Failed to fetch schedule");
+        }
       };
       fetchLessons();
     }
-  }, [activeView, user.id]);
+  }, [activeView, user.id, bookingDate, preferredStyle]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -45,27 +120,27 @@ const StudentDashboard = () => {
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedCoachId || !bookingDate || !bookingTime) return;
+    const selectedSlot = availableSlots.find(slot => getSlotKey(slot) === selectedSlotKey);
+    if (!selectedSlot) return;
 
     setIsSubmitting(true);
-    const selectedCoach = coaches.find(c => c.id === selectedCoachId);
-    const startDateTime = new Date(`${bookingDate}T${bookingTime}:00`);
-    const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
 
     const bookingData = {
-      coachId: selectedCoach.id,
+      coachId: selectedSlot.coachId,
       studentId: user.id,
-      coachName: selectedCoach.fullName,
+      coachName: selectedSlot.coachName,
       studentName: user.fullName,
-      startTime: startDateTime.toISOString(),
-      endTime: endDateTime.toISOString(),
+      startTime: selectedSlot.startTime,
+      endTime: selectedSlot.endTime,
       status: "PENDING"
     };
 
     try {
       await bookingService.bookLesson(bookingData);
-      alert(`Success! Your lesson with ${selectedCoach.fullName} has been requested.`);
-      setSelectedCoachId(''); setBookingDate(''); setBookingTime('');
+      alert(`Success! Your lesson with ${selectedSlot.coachName} has been requested.`);
+      setSelectedSlotKey('');
+      setBookingDate('');
+      setPreferredStyle('');
       setActiveView('schedule');
     } catch (error) {
       alert(error.message);
@@ -74,23 +149,75 @@ const StudentDashboard = () => {
     }
   };
 
-  const renderBoard = () => {
-    const squares = [];
-    const pieces = {
-      '0-0': '♜', '0-1': '♞', '0-2': '♝', '0-3': '♛', '0-4': '♚', '0-5': '♝', '0-6': '♞', '0-7': '♜',
-      '1-0': '♟', '1-1': '♟', '1-2': '♟', '1-3': '♟', '1-4': '♟', '1-5': '♟', '1-6': '♟', '1-7': '♟',
-      '6-0': '♙', '6-1': '♙', '6-2': '♙', '6-3': '♙', '6-4': '♙', '6-5': '♙', '6-6': '♙', '6-7': '♙',
-      '7-0': '♖', '7-1': '♘', '7-2': '♗', '7-3': '♕', '7-4': '♔', '7-5': '♗', '7-6': '♘', '7-7': '♖',
-    };
+  const replayTrainingLine = (moves = trainingMoves) => {
+    const game = new Chess();
 
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        const isDark = (row + col) % 2 === 1;
-        const piece = pieces[`${row}-${col}`] || '';
-        squares.push(<div key={`${row}-${col}`} className={`student-square ${isDark ? 'student-dark' : 'student-light'}`}>{piece}</div>);
-      }
+    for (const san of moves) {
+      game.move(san);
     }
-    return squares;
+
+    return game;
+  };
+
+  useEffect(() => {
+    const replayBoard = new Chess();
+    const nextHistory = [];
+
+    for (const san of trainingMoves) {
+      replayBoard.move(san);
+      nextHistory.push({
+        san,
+        fen: replayBoard.fen()
+      });
+    }
+
+    setTrainingHistory(nextHistory);
+
+    if (trainingMoves.length === 0) {
+      setTrainingViewIndex(-1);
+      setTrainingFen(START_FEN);
+    } else {
+      setTrainingViewIndex(trainingMoves.length - 1);
+      setTrainingFen(nextHistory[nextHistory.length - 1].fen);
+    }
+  }, [trainingMoves]);
+
+  const currentTrainingFen = trainingViewIndex === -1
+    ? START_FEN
+    : trainingHistory[trainingViewIndex]?.fen || trainingFen;
+
+  const trainingTurn = currentTrainingFen.split(' ')[1] === 'w' ? 'White' : 'Black';
+  const canStepBack = trainingViewIndex > -1;
+  const canStepForward = trainingViewIndex < trainingHistory.length - 1;
+
+  const onTrainingDrop = ({ sourceSquare, targetSquare }) => {
+    try {
+      const baseMoves = trainingMoves.slice(0, trainingViewIndex + 1);
+      const game = replayTrainingLine(baseMoves);
+      const move = game.move({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: 'q',
+      });
+
+      if (!move) return false;
+
+      setTrainingMoves([...baseMoves, move.san]);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const resetTrainingBoard = () => {
+    setTrainingMoves([]);
+    setTrainingHistory([]);
+    setTrainingViewIndex(-1);
+    setTrainingFen(START_FEN);
+  };
+
+  const undoTrainingMove = () => {
+    setTrainingMoves(prev => prev.slice(0, -1));
   };
 
   const activeLessons = myLessons.filter(l => l.status !== 'COMPLETED');
@@ -113,10 +240,102 @@ const StudentDashboard = () => {
         </div>
 
         {activeView === 'board' && (
-          <>
+          <div className="student-training-view">
             <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Tactics Board</h2>
-            <div className="student-board-container"><div className="student-chess-grid">{renderBoard()}</div></div>
-          </>
+            <div className="student-training-shell">
+              <section className="student-board-container">
+                <div className="student-board-toolbar">
+                  <span className={`student-turn-pill ${trainingTurn === 'Black' ? 'student-turn-pill-dark' : ''}`}>
+                    {trainingTurn} to move
+                  </span>
+                  <button
+                    type="button"
+                    className="student-icon-btn"
+                    onClick={() => setTrainingOrientation(prev => prev === 'white' ? 'black' : 'white')}
+                    title="Flip board"
+                    aria-label="Flip board"
+                  >
+                    <RefreshCw size={18} />
+                  </button>
+                </div>
+
+                <div className="student-training-board">
+                  <Chessboard
+                    options={{
+                      position: currentTrainingFen,
+                      onPieceDrop: onTrainingDrop,
+                      boardOrientation: trainingOrientation,
+                      animationDurationInMs: 160,
+                    }}
+                  />
+                </div>
+
+                <div className="student-board-controls">
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(-1)} disabled={!canStepBack} title="Start" aria-label="Start">
+                    <ChevronsLeft size={18} />
+                  </button>
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(prev => Math.max(-1, prev - 1))} disabled={!canStepBack} title="Previous move" aria-label="Previous move">
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(prev => Math.min(trainingHistory.length - 1, prev + 1))} disabled={!canStepForward} title="Next move" aria-label="Next move">
+                    <ChevronRight size={18} />
+                  </button>
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(trainingHistory.length - 1)} disabled={!canStepForward} title="Latest move" aria-label="Latest move">
+                    <ChevronsRight size={18} />
+                  </button>
+                  <button type="button" className="student-icon-btn" onClick={undoTrainingMove} disabled={trainingMoves.length === 0} title="Undo last move" aria-label="Undo last move">
+                    <RotateCcw size={18} />
+                  </button>
+                </div>
+              </section>
+
+              <aside className="student-training-panel">
+                <h3 className="font-serif">Move History</h3>
+                <div className="student-training-history">
+                  {trainingHistory.length === 0 ? (
+                    <p className="student-empty-history">Play a move to start analysis.</p>
+                  ) : (
+                    <table>
+                      <tbody>
+                        {Array.from({ length: Math.ceil(trainingHistory.length / 2) }).map((_, rowIndex) => {
+                          const whiteIndex = rowIndex * 2;
+                          const blackIndex = whiteIndex + 1;
+                          return (
+                            <tr key={rowIndex}>
+                              <td className="student-move-number">{rowIndex + 1}.</td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className={`student-move-btn ${trainingViewIndex === whiteIndex ? 'student-move-btn-active' : ''}`}
+                                  onClick={() => setTrainingViewIndex(whiteIndex)}
+                                >
+                                  {trainingHistory[whiteIndex]?.san}
+                                </button>
+                              </td>
+                              <td>
+                                {trainingHistory[blackIndex] && (
+                                  <button
+                                    type="button"
+                                    className={`student-move-btn ${trainingViewIndex === blackIndex ? 'student-move-btn-active' : ''}`}
+                                    onClick={() => setTrainingViewIndex(blackIndex)}
+                                  >
+                                    {trainingHistory[blackIndex].san}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+                <button type="button" className="student-clear-line-btn" onClick={resetTrainingBoard} disabled={trainingMoves.length === 0}>
+                  Clear Line
+                </button>
+              </aside>
+            </div>
+          </div>
         )}
 
         {activeView === 'booking' && (
@@ -125,21 +344,67 @@ const StudentDashboard = () => {
             <div className="student-booking-section">
               <form onSubmit={handleBookingSubmit}>
                 <div className="student-form-group">
-                  <label>Select a Coach</label>
-                  <select className="student-select" value={selectedCoachId} onChange={(e) => setSelectedCoachId(e.target.value)} required>
-                    <option value="">-- Choose a Grandmaster --</option>
-                    {coaches.map(coach => <option key={coach.id} value={coach.id}>{coach.fullName}</option>)}
+                  <label>Select Date</label>
+                  <input
+                    type="date"
+                    className="student-date-input"
+                    value={bookingDate}
+                    min={todayInputValue}
+                    onChange={(e) => {
+                      setBookingDate(e.target.value);
+                      setSelectedSlotKey('');
+                    }}
+                    required
+                  />
+                </div>
+
+                <div className="student-form-group">
+                  <label>Preferred Playstyle</label>
+                  <select
+                    className="student-select"
+                    value={preferredStyle}
+                    onChange={(e) => {
+                      setPreferredStyle(e.target.value);
+                      setSelectedSlotKey('');
+                    }}
+                  >
+                    <option value="">Any playstyle</option>
+                    {PLAYSTYLE_OPTIONS.map(style => <option key={style} value={style}>{style}</option>)}
                   </select>
                 </div>
+
                 <div className="student-form-group">
-                  <label>Select Date</label>
-                  <input type="date" className="student-date-input" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} required />
+                  <label>Available Lesson Times</label>
+                  <div className="student-coach-results">
+                    {availableSlots.length === 0 ? (
+                      <div className="student-no-coaches">
+                        {bookingDate ? 'No bookable lesson times match this date and playstyle yet.' : 'Choose a date to see precise coach availability.'}
+                      </div>
+                    ) : (
+                      availableSlots.map(slot => (
+                        <button
+                          type="button"
+                          key={getSlotKey(slot)}
+                          className={`student-coach-card ${selectedSlotKey === getSlotKey(slot) ? 'student-coach-card-active' : ''}`}
+                          onClick={() => setSelectedSlotKey(getSlotKey(slot))}
+                        >
+                          <div>
+                            <strong>{slot.coachName}</strong>
+                            <span>{formatSlotTime(slot.startTime)} - {formatSlotTime(slot.endTime)}</span>
+                          </div>
+                          <p>{slot.specialties || 'No playstyle listed yet.'}</p>
+                          <div className="student-slot-meta">
+                            <span>{bookingDate ? formatBookingDate(bookingDate) : 'Selected date'}</span>
+                            <span>{slot.currentElo || 0} ELO</span>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
                 </div>
-                <div className="student-form-group">
-                  <label>Select Time</label>
-                  <input type="time" className="student-date-input" value={bookingTime} onChange={(e) => setBookingTime(e.target.value)} required />
-                </div>
-                <button type="submit" className="student-submit-btn" disabled={isSubmitting}>{isSubmitting ? 'Requesting...' : 'Confirm Booking'}</button>
+                <button type="submit" className="student-submit-btn" disabled={isSubmitting || !selectedSlotKey}>
+                  {isSubmitting ? 'Requesting...' : 'Confirm Booking'}
+                </button>
               </form>
             </div>
           </>

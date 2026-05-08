@@ -1,29 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bookingService from './bookingService';
 
 import './CoachDashboard.css';
 
+const DAY_OPTIONS = [
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
+  { value: 7, label: 'Sunday' },
+];
+
+const COACH_VIEWS = ['schedule', 'reviews', 'profile'];
+
 const CoachDashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const activeViewStorageKey = `coach-dashboard-view-${user.id || 'guest'}`;
   const [lessons, setLessons] = useState([]);
-  const [activeView, setActiveView] = useState('schedule');
+  const [activeView, setActiveView] = useState(() => {
+    const savedView = localStorage.getItem(activeViewStorageKey);
+    return COACH_VIEWS.includes(savedView) ? savedView : 'schedule';
+  });
+  const [profile, setProfile] = useState({ specialties: '', bio: '', availability: [] });
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-  useEffect(() => {
-    if (user && user.id) {
-      loadLessons();
-    }
-  }, [user]);
-
-  const loadLessons = async () => {
+  const loadLessons = useCallback(async () => {
     try {
       const data = await bookingService.getCoachLessons(user.id);
       setLessons(data);
     } catch (error) {
       console.error("Failed to load lessons", error);
     }
-  };
+  }, [user.id]);
+
+  const loadProfile = useCallback(async () => {
+    try {
+      const data = await bookingService.getCoachProfile(user.id);
+      setProfile({
+        specialties: data.specialties || '',
+        bio: data.bio || '',
+        availability: data.availability?.length ? data.availability : []
+      });
+    } catch (error) {
+      console.error("Failed to load coach profile", error);
+    }
+  }, [user.id]);
+
+  useEffect(() => {
+    if (user.id) {
+      loadLessons();
+    }
+  }, [user.id, loadLessons]);
+
+  useEffect(() => {
+    localStorage.setItem(activeViewStorageKey, activeView);
+  }, [activeView, activeViewStorageKey]);
+
+  useEffect(() => {
+    if (activeView === 'profile' && user?.id) {
+      loadProfile();
+    }
+  }, [activeView, user?.id, loadProfile]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -46,6 +87,51 @@ const CoachDashboard = () => {
     }
   };
 
+  const addAvailabilitySlot = () => {
+    setProfile(prev => ({
+      ...prev,
+      availability: [
+        ...prev.availability,
+        { dayOfWeek: 1, startTime: '09:00', endTime: '10:00' }
+      ]
+    }));
+  };
+
+  const updateAvailabilitySlot = (index, field, value) => {
+    setProfile(prev => ({
+      ...prev,
+      availability: prev.availability.map((slot, slotIndex) => (
+        slotIndex === index ? { ...slot, [field]: field === 'dayOfWeek' ? Number(value) : value } : slot
+      ))
+    }));
+  };
+
+  const removeAvailabilitySlot = (index) => {
+    setProfile(prev => ({
+      ...prev,
+      availability: prev.availability.filter((_, slotIndex) => slotIndex !== index)
+    }));
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setIsSavingProfile(true);
+
+    try {
+      const savedProfile = await bookingService.saveCoachProfile(user.id, profile);
+      setProfile({
+        specialties: savedProfile.specialties || '',
+        bio: savedProfile.bio || '',
+        availability: savedProfile.availability || []
+      });
+      alert("Profile and availability saved.");
+    } catch (error) {
+      alert("Failed to save profile.");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   const activeLessons = lessons.filter(l => l.status !== 'COMPLETED');
   const pastLessons = lessons.filter(l => l.status === 'COMPLETED');
 
@@ -55,6 +141,7 @@ const CoachDashboard = () => {
         <h2 className="font-serif" style={{ textAlign: 'center', marginBottom: '1rem' }}>CheckMateAcademy</h2>
         <button className={`coach-side-btn font-serif ${activeView === 'schedule' ? 'coach-side-btn-active' : ''}`} onClick={() => setActiveView('schedule')}>Schedule & Requests</button>
         <button className={`coach-side-btn font-serif ${activeView === 'reviews' ? 'coach-side-btn-active' : ''}`} onClick={() => setActiveView('reviews')}>Lesson Reviews</button>
+        <button className={`coach-side-btn font-serif ${activeView === 'profile' ? 'coach-side-btn-active' : ''}`} onClick={() => setActiveView('profile')}>Profile & Availability</button>
       </aside>
 
       <main className="coach-main-content">
@@ -125,6 +212,58 @@ const CoachDashboard = () => {
                 </tbody>
               </table>
             </div>
+          </>
+        )}
+
+        {activeView === 'profile' && (
+          <>
+            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Coach Profile</h2>
+            <form className="coach-profile-form" onSubmit={handleSaveProfile}>
+              <div className="coach-form-group">
+                <label>Teaching strengths / playstyles</label>
+                <input
+                  value={profile.specialties}
+                  onChange={(e) => setProfile(prev => ({ ...prev, specialties: e.target.value }))}
+                  placeholder="Aggressive openings, endgames, positional play"
+                />
+              </div>
+
+              <div className="coach-form-group">
+                <label>Short coach bio</label>
+                <textarea
+                  value={profile.bio}
+                  onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
+                  placeholder="Tell students what you help with and who your lessons are best for."
+                />
+              </div>
+
+              <div className="coach-availability-header">
+                <h3 className="font-serif">Weekly Availability</h3>
+                <button type="button" className="coach-add-slot-btn" onClick={addAvailabilitySlot}>Add Time Slot</button>
+              </div>
+
+              <div className="coach-availability-list">
+                {profile.availability.length === 0 ? (
+                  <p className="coach-empty-slots">Add at least one time slot so students can book you.</p>
+                ) : (
+                  profile.availability.map((slot, index) => (
+                    <div className="coach-slot-row" key={`${slot.dayOfWeek}-${slot.startTime}-${index}`}>
+                      <select value={slot.dayOfWeek} onChange={(e) => updateAvailabilitySlot(index, 'dayOfWeek', e.target.value)}>
+                        {DAY_OPTIONS.map(day => <option key={day.value} value={day.value}>{day.label}</option>)}
+                      </select>
+                      <input type="time" value={slot.startTime || ''} onChange={(e) => updateAvailabilitySlot(index, 'startTime', e.target.value)} />
+                      <span>to</span>
+                      <input type="time" value={slot.endTime || ''} onChange={(e) => updateAvailabilitySlot(index, 'endTime', e.target.value)} />
+                      <button type="button" className="coach-remove-slot-btn" onClick={() => removeAvailabilitySlot(index)}>Remove</button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <button type="submit" className="coach-save-profile-btn" disabled={isSavingProfile}>
+                {isSavingProfile ? 'Saving...' : 'Save Profile'}
+              </button>
+            </form>
           </>
         )}
       </main>

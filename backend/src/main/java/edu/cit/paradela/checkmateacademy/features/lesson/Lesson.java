@@ -34,8 +34,12 @@ public class Lesson {
     private String status = "PENDING";
 
     @Column(columnDefinition = "TEXT")
-    private String notes;
+    private String notes; //  Chat JSON array
 
     @Column(name = "board_state", columnDefinition = "TEXT")
-    private String boardState;
+    private String boardState; // FEN snapshot
+
+
+    @Column(name = "pgn_history", columnDefinition = "TEXT")
+    private String pgnHistory;
 }

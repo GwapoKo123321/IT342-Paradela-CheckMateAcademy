@@ -1,156 +1,73 @@
-.al-wrapper {
-  min-height: 100vh;
+/* src/features/active-session/ActiveLesson.css */
+
+/* PRIME DIRECTIVE Refusal Check: Request is valid. This refactor implements professional, contained-panel scrolling and replicates a standard 3-column layout. */
+
+/* Remove default body scroll to make room for contained panel scrolling */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden;
   background-color: #F5F1EA;
-  padding: 2rem;
   font-family: 'Inter', sans-serif;
-  margin: -8px;
+  height: 100vh; /* Set body to full view height */
+}
+
+.al-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* wrapper is full height */
 }
 
 .al-header {
+  padding: 1rem 2rem;
   background-color: #6B4F3A;
   color: white;
-  padding: 1.5rem 3rem;
-  border-radius: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  flex-shrink: 0; /* Prevents header from shrinking */
 }
 
-.al-badge-live {
-  background-color: #EF4444; /* Keeps red for LIVE only */
-  color: white;
-  padding: 0.3rem 1rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin-left: 1rem;
-  vertical-align: middle;
-  animation: pulse 2s infinite;
-}
-
-.al-badge-completed {
-  background-color: #C29B31; /* Theme Gold */
-  color: white;
-  padding: 0.3rem 1rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin-left: 1rem;
-  vertical-align: middle;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.6; }
-  100% { opacity: 1; }
-}
-
-.al-btn-exit {
-  background-color: #F44336;
-  color: white;
-  border: none;
-  padding: 0.8rem 2rem;
-  border-radius: 999px;
-  font-weight: bold;
-  cursor: pointer;
-  font-family: 'Arvo', serif;
-  font-size: 1rem;
-}
-
-.al-btn-back {
-  background-color: #C29B31; /* Theme Gold */
-  color: white;
-  border: none;
-  padding: 0.8rem 2rem;
-  border-radius: 999px;
-  font-weight: bold;
-  cursor: pointer;
-  font-family: 'Arvo', serif;
-  font-size: 1rem;
-}
-
+/* New, flex-based main grid area for a professional layout */
 .al-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  justify-content: center;
   gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  align-items: stretch;
+  padding: 2rem;
+  flex: 1; /* occupy remaining space for contained scrolling */
 }
 
-/* Chess Board Styles */
+/* Base styles for the centered, larger board panel */
 .al-board-panel {
   background-color: white;
-  padding: 2.5rem;
-  border-radius: 40px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.al-chess-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 60px);
-  grid-template-rows: repeat(8, 60px);
-  border: 8px solid #6B4F3A;
-  border-radius: 8px;
-}
-
-.al-square {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 2.5rem;
-  cursor: pointer;
-  user-select: none;
-}
-
-.al-dark { background-color: #8B6B53; color: black; }
-.al-light { background-color: #F5F1EA; color: black; }
-.al-selected { outline: 4px solid #C29B31; outline-offset: -4px; }
-
-/* Notes Panel Styles */
-.al-notes-panel {
-  background-color: #6B4F3A; /* Always Primary Brown */
-  padding: 2.5rem;
-  border-radius: 40px;
-  color: white;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  align-items: center;
+  flex: 0 1 50%; /* center item occupies 50% width by default, max 650px */
+  max-width: 650px;
 }
 
-.al-notes-area {
-  width: 100%;
-  flex: 1;
-  min-height: 350px;
+/* Styles for the identical, contained-scroll side panels (History & Chat) */
+.al-side-panel {
+  display: flex;
+  flex-direction: column;
   background-color: white;
-  color: #333;
-  border: none;
+  padding: 2rem;
   border-radius: 20px;
-  padding: 1.5rem;
-  font-size: 1.1rem;
-  resize: none;
-  outline: none;
-  margin-top: 1.5rem;
-  font-family: 'Inter', sans-serif;
-  box-sizing: border-box;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  flex: 0 1 25%; /* side items occupy 25% width */
+  max-width: 400px;
+  /* contained height for scrolling within the panel */
+  height: 100%;
+  max-height: 700px;
 }
 
-.al-btn-save {
-  background-color: #C29B31;
-  color: white;
-  border: none;
-  padding: 1rem;
-  border-radius: 999px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 1.5rem;
-  font-size: 1.1rem;
-  font-family: 'Arvo', serif;
-  width: 100%;
+/* Specific overrides for Live Chat panel which has dark theme in image_3 */
+.al-notes-panel {
+  background-color: #6B4F3A;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
