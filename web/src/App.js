@@ -1,11 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './components/LandingPage';
-import Login from './components/Login';
-import Register from './components/Register';
-import StudentDashboard from './components/StudentDashboard';
-import CoachDashboard from './components/CoachDashboard';
-import ActiveLesson from './components/ActiveLesson';
+import LandingPage from './features/core/LandingPage';
+import Login from './features/auth/Login';
+import Register from './features/auth/Register';
+import StudentDashboard from './features/booking/StudentDashboard';
+import CoachDashboard from './features/booking/CoachDashboard';
+
+
+import ActiveLesson from './features/active-session/ActiveLesson';
 
 const DashboardFactory = () => {
   const userStr = localStorage.getItem('user');
@@ -23,7 +25,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<DashboardFactory />} />
 
-        {/* NEW: The Active Lesson Route */}
+        {/* The Active Lesson Route */}
         <Route path="/lesson/:id" element={<ActiveLesson />} />
       </Routes>
     </Router>

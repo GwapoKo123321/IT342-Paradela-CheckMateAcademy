@@ -1,0 +1,73 @@
+/* src/features/active-session/ActiveLesson.css */
+
+/* PRIME DIRECTIVE Refusal Check: Request is valid. This refactor implements professional, contained-panel scrolling and replicates a standard 3-column layout. */
+
+/* Remove default body scroll to make room for contained panel scrolling */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden;
+  background-color: #F5F1EA;
+  font-family: 'Inter', sans-serif;
+  height: 100vh; /* Set body to full view height */
+}
+
+.al-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* wrapper is full height */
+}
+
+.al-header {
+  padding: 1rem 2rem;
+  background-color: #6B4F3A;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  flex-shrink: 0; /* Prevents header from shrinking */
+}
+
+/* New, flex-based main grid area for a professional layout */
+.al-grid {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  flex: 1; /* occupy remaining space for contained scrolling */
+}
+
+/* Base styles for the centered, larger board panel */
+.al-board-panel {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 1 50%; /* center item occupies 50% width by default, max 650px */
+  max-width: 650px;
+}
+
+/* Styles for the identical, contained-scroll side panels (History & Chat) */
+.al-side-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  flex: 0 1 25%; /* side items occupy 25% width */
+  max-width: 400px;
+  /* contained height for scrolling within the panel */
+  height: 100%;
+  max-height: 700px;
+}
+
+/* Specific overrides for Live Chat panel which has dark theme in image_3 */
+.al-notes-panel {
+  background-color: #6B4F3A;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
