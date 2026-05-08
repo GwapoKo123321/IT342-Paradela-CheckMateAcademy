@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import bookingService from '../api/bookingService';
+import bookingService from './bookingService';
 
 const CoachDirectory = () => {
   const [message, setMessage] = useState('');
@@ -15,7 +15,7 @@ const CoachDirectory = () => {
       };
 
       await bookingService.bookLesson(bookingData);
-      setMessage('Lesson Booked Successfully!'); //
+      setMessage('Lesson Booked Successfully!');
     } catch (error) {
       setMessage('Failed to book lesson.');
     }

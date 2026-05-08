@@ -1,4 +1,4 @@
-package edu.cit.paradela.checkmateacademy.model;
+package edu.cit.paradela.checkmateacademy.features.lesson;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -35,7 +35,6 @@ public class Lesson {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
-
 
     @Column(name = "board_state", columnDefinition = "TEXT")
     private String boardState;

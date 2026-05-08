@@ -1,6 +1,5 @@
-package edu.cit.paradela.checkmateacademy.repository;
+package edu.cit.paradela.checkmateacademy.features.lesson;
 
-import edu.cit.paradela.checkmateacademy.model.Lesson;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +10,7 @@ import java.util.UUID;
 
 @Repository
 public interface LessonRepository extends JpaRepository<Lesson, UUID> {
+
     List<Lesson> findByCoachIdOrderByStartTimeDesc(UUID coachId);
     List<Lesson> findByStudentIdOrderByStartTimeDesc(UUID studentId);
 

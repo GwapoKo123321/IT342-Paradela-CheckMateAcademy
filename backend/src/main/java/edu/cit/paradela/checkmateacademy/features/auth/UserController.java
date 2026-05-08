@@ -1,7 +1,5 @@
-package edu.cit.paradela.checkmateacademy.controller;
+package edu.cit.paradela.checkmateacademy.features.auth;
 
-import edu.cit.paradela.checkmateacademy.model.User;
-import edu.cit.paradela.checkmateacademy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +15,6 @@ public class UserController {
 
     @GetMapping("/coaches")
     public ResponseEntity<List<User>> getCoaches() {
-        // Automatically fetches all registered users where role = 'Coach'
         return ResponseEntity.ok(userRepository.findByRole("Coach"));
     }
 }

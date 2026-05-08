@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import bookingService from '../api/bookingService';
+import bookingService from './bookingService';
+
 import './StudentDashboard.css';
 
 const StudentDashboard = () => {

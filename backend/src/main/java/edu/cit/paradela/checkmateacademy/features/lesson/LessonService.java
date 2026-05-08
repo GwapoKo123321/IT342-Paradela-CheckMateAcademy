@@ -1,14 +1,13 @@
-package edu.cit.paradela.checkmateacademy.service;
+package edu.cit.paradela.checkmateacademy.features.lesson;
 
-import edu.cit.paradela.checkmateacademy.model.Lesson;
-import edu.cit.paradela.checkmateacademy.repository.LessonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class BookingService {
+public class LessonService {
+
     @Autowired
     private LessonRepository lessonRepository;
 

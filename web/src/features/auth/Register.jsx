@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import authService from '../api/authService';
-import './RegisterPage.css'; //
+import authService from './authService';
+import './RegisterPage.css';
 
 const Register = () => {
   const navigate = useNavigate();

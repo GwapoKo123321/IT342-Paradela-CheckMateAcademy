@@ -1,4 +1,4 @@
-package edu.cit.paradela.checkmateacademy.model;
+package edu.cit.paradela.checkmateacademy.features.auth;
 
 import jakarta.persistence.*;
 import lombok.Data;
