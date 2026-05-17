@@ -36,7 +36,8 @@ public class SecurityConfig {
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/users/**", "/api/lessons/**").permitAll()
+                        // ADDED /api/admin/** SO IT IS NOT BLOCKED
+                        .requestMatchers("/api/auth/**", "/api/users/**", "/api/lessons/**", "/api/admin/**").permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }
