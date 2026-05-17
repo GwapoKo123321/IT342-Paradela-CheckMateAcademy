@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import adminService from './adminService';
+import reportService from '../report/reportService';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [users, setUsers] = useState([]);
+  const [reports, setReports] = useState([]);
 
   const loadUsers = async () => {
     try {
@@ -17,9 +19,19 @@ const AdminDashboard = () => {
     }
   };
 
+  const loadReports = async () => {
+    try {
+      const data = await reportService.getAllReports();
+      setReports(data);
+    } catch (error) {
+      console.error("Failed to load reports", error);
+    }
+  };
+
   useEffect(() => {
     if (user.role === 'Admin') {
       loadUsers();
+      loadReports();
     } else {
       navigate('/dashboard');
     }
@@ -64,6 +76,15 @@ const AdminDashboard = () => {
       loadUsers();
     } catch (error) {
       alert("Failed to verify ELO.");
+    }
+  };
+
+  const handleResolveReport = async (reportId) => {
+    try {
+      await reportService.resolveReport(reportId);
+      loadReports();
+    } catch (error) {
+      alert("Failed to resolve report.");
     }
   };
 
@@ -146,6 +167,47 @@ const AdminDashboard = () => {
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h2 className="font-serif" style={{ color: '#1a1a1a', margin: '3rem 0 2rem 0', fontSize: '2.5rem' }}>Active Player Reports</h2>
+
+        <div className="admin-table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Reported User</th>
+                <th>Reason Provided</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.length === 0 ? (
+                <tr><td colSpan="5" style={{textAlign: 'center', padding: '2rem'}}>No reports pending.</td></tr>
+              ) : (
+                reports.map(r => (
+                  <tr key={r.id}>
+                    <td>{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td style={{ fontWeight: 'bold', color: '#E04F5F' }}>{r.reportedName}</td>
+                    <td style={{ fontStyle: 'italic' }}>"{r.reason}"</td>
+                    <td>
+                      <span className={`admin-role-badge ${r.status === 'PENDING' ? 'role-Student' : 'role-Admin'}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td>
+                      {r.status === 'PENDING' && (
+                        <button onClick={() => handleResolveReport(r.id)} className="admin-btn-verified admin-toggle-btn">
+                          Mark as Resolved
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

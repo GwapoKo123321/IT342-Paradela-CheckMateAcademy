@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import bookingService from '../booking/bookingService';
+import reportService from '../report/reportService';
 import './ActiveLesson.css';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -15,7 +16,6 @@ const loadPgn = (game, pgnText) => {
       game.loadPgn(pgnText);
       return true;
     }
-
     return game.load_pgn(pgnText) !== false;
   } catch (error) {
     return false;
@@ -256,6 +256,26 @@ const ActiveLesson = () => {
     }
   };
 
+  const handleReportUser = async () => {
+    const reason = window.prompt("Why are you reporting this user? (e.g., Offensive language, Cheating)");
+    if (!reason || !reason.trim()) return;
+
+    const reportedId = isCoach ? lesson.studentId : lesson.coachId;
+    const reportedName = isCoach ? lesson.studentName : lesson.coachName;
+
+    try {
+      await reportService.submitReport({
+        reporterId: user.id,
+        reportedId: reportedId,
+        reportedName: reportedName,
+        reason: reason.trim()
+      });
+      alert("Report submitted successfully. An Admin will review this immediately.");
+    } catch (error) {
+      alert("Failed to submit report.");
+    }
+  };
+
   const currentViewFen = viewIndex === -1 && gameHistory.length > 0
     ? START_FEN
     : (viewIndex >= 0 && gameHistory[viewIndex]?.fen)
@@ -293,7 +313,6 @@ const ActiveLesson = () => {
       pendingBoardStateRef.current = newFen;
 
       lastLocalMoveTime.current = Date.now();
-      // viewIndex will automatically update in the pgn useEffect
 
       bookingService.updateBoardState(id, newFen, newPgn)
         .then((updatedLesson) => {
@@ -315,10 +334,8 @@ const ActiveLesson = () => {
 
   if (!lesson) return <div style={{ padding: '3rem', textAlign: 'center', fontFamily: 'Inter' }}>Loading Session...</div>;
 
-  // Calculate current turn from the displayed FEN
   const currentTurn = currentViewFen.split(' ')[1] === 'w' ? 'White' : 'Black';
 
-  // Build move pairs (White vs Black)
   const movePairs = [];
   for (let i = 0; i < gameHistory.length; i += 2) {
     movePairs.push({
@@ -332,8 +349,6 @@ const ActiveLesson = () => {
 
   return (
     <div className="al-wrapper">
-
-      {/* Header */}
       <div className="al-header">
         <div>
           <h2 className="font-serif" style={{ margin: 0, fontSize: '2rem' }}>
@@ -348,24 +363,49 @@ const ActiveLesson = () => {
             {lesson.coachName} (Coach) vs {lesson.studentName} (Student)
           </p>
         </div>
-        <button
-          className={isCompleted ? 'al-btn-back' : 'al-btn-exit'}
-          onClick={() => navigate('/dashboard')}
-          style={{backgroundColor: isCompleted ? '#6B4F3A' : '#E04F5F', color: 'white', padding: '10px 20px', borderRadius: '25px', border: 'none', fontWeight: 'bold', cursor: 'pointer'}}
-        >
-          {isCompleted ? 'Back to Dashboard' : 'Leave Session'}
-        </button>
+
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          <button
+            onClick={handleReportUser}
+            style={{
+              backgroundColor: 'transparent',
+              color: '#FFB3B3',
+              padding: '8px 16px',
+              borderRadius: '25px',
+              border: '2px solid #FFB3B3',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            🚩 Report Chat
+          </button>
+
+          <button
+            className={isCompleted ? 'al-btn-back' : 'al-btn-exit'}
+            onClick={() => navigate('/dashboard')}
+            style={{
+              backgroundColor: isCompleted ? '#C29B31' : '#E04F5F',
+              color: 'white',
+              padding: '10px 24px',
+              borderRadius: '25px',
+              border: 'none',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontSize: '1rem'
+            }}
+          >
+            {isCompleted ? 'Back to Dashboard' : 'Leave Session'}
+          </button>
+        </div>
       </div>
 
       <div className="al-grid">
-
-        {/* Move History Panel */}
         <div className="al-side-panel al-history-panel" style={{backgroundColor: 'white', display: 'flex', flexDirection: 'column'}}>
           <h2 className="font-serif" style={{ margin: '0 0 1rem 0', fontSize: '1.8rem', color: '#6B4F3A' }}>
             Move History
           </h2>
 
-          {/* Table of Moves */}
           <div ref={historyListRef} style={{ flex: 1, overflowY: 'auto', paddingRight: '5px' }}>
             {movePairs.length === 0 ? (
               <div style={{ color: '#888', fontStyle: 'italic', textAlign: 'center', padding: '2rem 0' }}>
@@ -418,7 +458,6 @@ const ActiveLesson = () => {
             )}
           </div>
 
-          {/* Navigation Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', backgroundColor: '#F5F1EA', borderRadius: '10px', padding: '5px' }}>
             <button onClick={goToStart} disabled={viewIndex === -1} style={{flex: 1, padding: '10px', background: 'none', border: 'none', cursor: viewIndex === -1 ? 'not-allowed' : 'pointer', color: '#6B4F3A', fontWeight: 'bold', fontSize: '1.2rem', opacity: viewIndex === -1 ? 0.45 : 1}}>|&lt;</button>
             <button onClick={goBack} disabled={viewIndex === -1} style={{flex: 1, padding: '10px', background: 'none', border: 'none', cursor: viewIndex === -1 ? 'not-allowed' : 'pointer', color: '#6B4F3A', fontWeight: 'bold', fontSize: '1.2rem', opacity: viewIndex === -1 ? 0.45 : 1}}>&lt;</button>
@@ -446,7 +485,6 @@ const ActiveLesson = () => {
           </button>
         </div>
 
-        {/* Chessboard Panel */}
         <div className="al-board-panel">
           <div style={{ width: '100%', maxWidth: '600px', display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
             <span style={{
@@ -487,7 +525,6 @@ const ActiveLesson = () => {
           </div>
         </div>
 
-        {/* Live Chat Panel */}
         <div className="al-side-panel al-notes-panel" >
           <h2 className="font-serif" style={{ margin: '0 0 1rem 0', fontSize: '1.8rem', color: 'white' }}>
             Live Chat
@@ -548,7 +585,6 @@ const ActiveLesson = () => {
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );
