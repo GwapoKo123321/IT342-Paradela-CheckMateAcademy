@@ -36,7 +36,8 @@ public class SecurityConfig {
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/users/**", "/api/lessons/**").permitAll()
+
+                        .requestMatchers("/api/auth/**", "/api/users/**", "/api/lessons/**", "/api/admin/**", "/api/reports/**").permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }
