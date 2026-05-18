@@ -1,11 +1,17 @@
-.coach-layout { display: flex; min-height: 100vh; background-color: #F5F1EA; }
+.coach-layout { display: flex; height: 100vh; overflow: hidden; background-color: #F5F1EA; }
 
-.coach-sidebar { width: 250px; background-color: #6B4F3A; color: white; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+/* The fix: width is now max-content with a minimum of 250px */
+.coach-sidebar { width: max-content; min-width: 250px; background-color: #6B4F3A; color: white; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; height: 100vh; box-sizing: border-box; overflow-y: auto; }
+
+/* Text stays large, never wraps, and the sidebar stretches to fit it */
+.coach-sidebar h2 { font-size: 1.5rem !important; white-space: nowrap; text-align: center; margin-bottom: 1rem; margin-top: 0; }
 
 .coach-side-btn { background-color: white; color: #6B4F3A; padding: 1rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; }
 .coach-side-btn-active { background-color: #C29B31; color: white; }
 
-.coach-main-content { flex: 1; padding: 3rem; display: flex; flex-direction: column; align-items: center; }
+.coach-main-content { flex: 1; padding: 3rem; display: block; overflow-y: auto; overflow-x: hidden; height: 100vh; box-sizing: border-box; }
+
+.coach-main-content > h2 { text-align: center; margin-left: auto; margin-right: auto; }
 
 .coach-header { width: 100%; display: flex; justify-content: flex-end; margin-bottom: 2rem; align-items: center; }
 
@@ -13,7 +19,7 @@
 
 .coach-table-container { background-color: white; padding: 2.5rem; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 1000px; overflow-x: auto; margin: 0 auto; }
 
-.coach-profile-form { background-color: white; padding: 2.5rem; border-radius: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 900px; box-sizing: border-box; }
+.coach-profile-form { background-color: white; padding: 2.5rem; border-radius: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 900px; box-sizing: border-box; margin: 0 auto; }
 .coach-form-group { display: flex; flex-direction: column; text-align: left; gap: 0.6rem; margin-bottom: 1.4rem; }
 .coach-form-group label { color: #6B4F3A; font-weight: 800; font-family: 'Arvo', serif; }
 .coach-form-group input, .coach-form-group textarea { width: 100%; box-sizing: border-box; border: 2px solid #E0D8C8; border-radius: 16px; background-color: #F5F1EA; padding: 1rem; color: #333; font-size: 1rem; outline: none; }

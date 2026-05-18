@@ -7,22 +7,53 @@ const Register = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('Student');
   const [formData, setFormData] = useState({ email: '', password: '', fullName: '', role: 'Student', chessUsername: '', currentElo: 0 });
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRoleChange = (newRole) => {
     setRole(newRole);
     setFormData({ ...formData, role: newRole });
+    setErrorMsg(''); // Clear errors when switching roles
   };
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrorMsg(''); // Clear error when user starts typing again
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+
+    // --- BASIC VALIDATIONS ---
+    if (formData.password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters long.");
+      return;
+    }
+    if (formData.fullName.trim() === '') {
+      setErrorMsg("Full name cannot be empty.");
+      return;
+    }
+    if (role === 'Coach') {
+      if (formData.currentElo < 100 || formData.currentElo > 3500) {
+        setErrorMsg("Please enter a valid ELO rating (between 100 and 3500).");
+        return;
+      }
+      if (formData.chessUsername.trim() === '') {
+        setErrorMsg("Chess username is required for coaches.");
+        return;
+      }
+    }
+
+    setIsLoading(true);
     try {
       await authService.registerUser(formData);
-      alert("Registration Successful!");
+      alert("Registration Successful! You can now log in.");
       navigate('/login');
     } catch (error) {
-      alert("Registration failed. Email might already exist.");
+      setErrorMsg("Registration failed. This email might already be in use.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -50,19 +81,27 @@ const Register = () => {
           </div>
 
           <div className="reg-white-box">
+            {errorMsg && (
+              <div style={{ color: '#D8000C', backgroundColor: '#FFD2D2', padding: '10px', borderRadius: '10px', marginBottom: '1.5rem', fontWeight: 'bold' }}>
+                ⚠️ {errorMsg}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className={`reg-form-grid ${role === 'Coach' ? 'reg-grid-coach' : 'reg-grid-student'}`}>
-              <input name="email" type="email" placeholder="Email" className="reg-input" onChange={handleChange} required />
-              <input name="password" type="password" placeholder="Password" className="reg-input" onChange={handleChange} required />
-              <input name="fullName" type="text" placeholder="Fullname" className="reg-input" onChange={handleChange} required />
+              <input name="email" type="email" placeholder="Email Address" className="reg-input" onChange={handleChange} required />
+              <input name="password" type="password" placeholder="Password (Min 6 chars)" className="reg-input" onChange={handleChange} required />
+              <input name="fullName" type="text" placeholder="Full Display Name" className="reg-input" onChange={handleChange} required />
 
               {role === 'Coach' && (
                 <>
-                  <input name="currentElo" type="number" placeholder="ELO Rating" className="reg-input" onChange={handleChange} required />
-                  <input name="chessUsername" type="text" placeholder="Chess Username" className="reg-input" onChange={handleChange} required />
+                  <input name="currentElo" type="number" placeholder="Current ELO Rating" className="reg-input" onChange={handleChange} required />
+                  <input name="chessUsername" type="text" placeholder="Chess.com / Lichess Handle" className="reg-input" onChange={handleChange} required />
                 </>
               )}
 
-              <button type="submit" className="reg-submit-btn">Register</button>
+              <button type="submit" className="reg-submit-btn" disabled={isLoading}>
+                {isLoading ? 'Registering...' : 'Register'}
+              </button>
             </form>
           </div>
         </div>

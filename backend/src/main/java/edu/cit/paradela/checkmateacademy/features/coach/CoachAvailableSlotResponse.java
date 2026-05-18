@@ -9,6 +9,7 @@ public class CoachAvailableSlotResponse {
     private UUID coachId;
     private String coachName;
     private Integer currentElo;
+    private boolean eloVerified;
     private String specialties;
     private String bio;
     private LocalDateTime startTime;
@@ -20,6 +21,7 @@ public class CoachAvailableSlotResponse {
         this.coachId = coach.getId();
         this.coachName = coach.getFullName();
         this.currentElo = coach.getCurrentElo();
+        this.eloVerified = coach.isEloVerified();
         this.specialties = coach.getSpecialties();
         this.bio = coach.getBio();
         this.startTime = startTime;

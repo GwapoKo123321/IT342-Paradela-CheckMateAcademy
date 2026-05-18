@@ -14,4 +14,9 @@ const registerUser = async (userData) => {
     return await apiClient.post('/auth/register', userData);
 };
 
-export default { loginUser, registerUser };
+const updateProfile = async (userId, profileData) => {
+    const response = await apiClient.put(`/users/profile/update/${userId}`, profileData);
+    return response.data;
+};
+
+export default { loginUser, registerUser, updateProfile };

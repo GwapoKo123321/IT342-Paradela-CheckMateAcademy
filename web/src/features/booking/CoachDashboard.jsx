@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bookingService from './bookingService';
-
+import authService from '../auth/authService';
 import './CoachDashboard.css';
 
 const DAY_OPTIONS = [
@@ -40,7 +40,6 @@ const availabilitySlotsOverlap = (first, second) => {
 
 const getOverlappingAvailabilityIndexes = (availability) => {
   const overlappingIndexes = new Set();
-
   availability.forEach((slot, index) => {
     availability.forEach((compareSlot, compareIndex) => {
       if (index >= compareIndex) return;
@@ -50,7 +49,6 @@ const getOverlappingAvailabilityIndexes = (availability) => {
       }
     });
   });
-
   return overlappingIndexes;
 };
 
@@ -59,32 +57,30 @@ const formatHour = (hour) => `${String(hour).padStart(2, '0')}:00`;
 const findNextAvailableSlot = (availability) => {
   for (const day of DAY_OPTIONS) {
     for (let startHour = 9; startHour < 17; startHour += 1) {
-      const slot = {
-        dayOfWeek: day.value,
-        startTime: formatHour(startHour),
-        endTime: formatHour(startHour + 1)
-      };
-
+      const slot = { dayOfWeek: day.value, startTime: formatHour(startHour), endTime: formatHour(startHour + 1) };
       if (availability.every(existingSlot => !availabilitySlotsOverlap(slot, existingSlot))) {
         return slot;
       }
     }
   }
-
   return { dayOfWeek: 1, startTime: '09:00', endTime: '10:00' };
 };
 
 const CoachDashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
   const activeViewStorageKey = `coach-dashboard-view-${user.id || 'guest'}`;
   const [lessons, setLessons] = useState([]);
+
   const [activeView, setActiveView] = useState(() => {
     const savedView = localStorage.getItem(activeViewStorageKey);
     return COACH_VIEWS.includes(savedView) ? savedView : 'schedule';
   });
+
   const [profile, setProfile] = useState({ specialties: '', bio: '', availability: [] });
+  const [identityForm, setIdentityForm] = useState({ fullName: user.fullName || '', chessUsername: user.chessUsername || '', currentElo: user.currentElo || 0 });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+
   const overlappingAvailabilityIndexes = useMemo(
     () => getOverlappingAvailabilityIndexes(profile.availability),
     [profile.availability]
@@ -114,9 +110,7 @@ const CoachDashboard = () => {
   }, [user.id]);
 
   useEffect(() => {
-    if (user.id) {
-      loadLessons();
-    }
+    if (user.id) { loadLessons(); }
   }, [user.id, loadLessons]);
 
   useEffect(() => {
@@ -124,9 +118,7 @@ const CoachDashboard = () => {
   }, [activeView, activeViewStorageKey]);
 
   useEffect(() => {
-    if (activeView === 'profile' && user?.id) {
-      loadProfile();
-    }
+    if (activeView === 'profile' && user?.id) { loadProfile(); }
   }, [activeView, user?.id, loadProfile]);
 
   const handleLogout = () => {
@@ -135,12 +127,10 @@ const CoachDashboard = () => {
   };
 
   const handleAction = async (lessonId, action) => {
-    // Confirm before marking as completed
     if (action === 'COMPLETED') {
       const confirmComplete = window.confirm("Are you sure you want to mark this lesson as completed? This will move it to Match Reviews.");
       if (!confirmComplete) return;
     }
-
     try {
       await bookingService.updateLessonStatus(lessonId, action);
       alert(`Lesson status updated to ${action}.`);
@@ -151,13 +141,7 @@ const CoachDashboard = () => {
   };
 
   const addAvailabilitySlot = () => {
-    setProfile(prev => ({
-      ...prev,
-      availability: [
-        ...prev.availability,
-        findNextAvailableSlot(prev.availability)
-      ]
-    }));
+    setProfile(prev => ({ ...prev, availability: [...prev.availability, findNextAvailableSlot(prev.availability)] }));
   };
 
   const updateAvailabilitySlot = (index, field, value) => {
@@ -170,10 +154,7 @@ const CoachDashboard = () => {
   };
 
   const removeAvailabilitySlot = (index) => {
-    setProfile(prev => ({
-      ...prev,
-      availability: prev.availability.filter((_, slotIndex) => slotIndex !== index)
-    }));
+    setProfile(prev => ({ ...prev, availability: prev.availability.filter((_, slotIndex) => slotIndex !== index) }));
   };
 
   const handleSaveProfile = async (e) => {
@@ -187,15 +168,21 @@ const CoachDashboard = () => {
     setIsSavingProfile(true);
 
     try {
+      const updatedUser = await authService.updateProfile(user.id, identityForm);
+      updatedUser.role = user.role;
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+
       const savedProfile = await bookingService.saveCoachProfile(user.id, profile);
       setProfile({
         specialties: savedProfile.specialties || '',
         bio: savedProfile.bio || '',
         availability: savedProfile.availability || []
       });
-      alert("Profile and availability saved.");
+
+      alert("Profile data matrices and schedules saved successfully.");
     } catch (error) {
-      alert(error.response?.data?.error || "Failed to save profile.");
+      alert(error.response?.data?.error || "Failed to update profile settings.");
     } finally {
       setIsSavingProfile(false);
     }
@@ -215,7 +202,10 @@ const CoachDashboard = () => {
 
       <main className="coach-main-content">
         <div className="coach-header">
-          <span style={{ marginRight: '1.5rem', fontWeight: 'bold' }}>{user?.fullName} (Coach)</span>
+          <span style={{ marginRight: '1.5rem', fontWeight: 'bold' }}>
+            {user?.fullName} (Coach)
+            {user?.eloVerified && <span style={{color: '#C29B31', marginLeft: '5px'}}>✓ Verified</span>}
+          </span>
           <button onClick={handleLogout} className="coach-logout-btn font-serif">Logout</button>
         </div>
 
@@ -272,9 +262,7 @@ const CoachDashboard = () => {
                         <td style={{ fontWeight: 'bold' }}>{lesson.studentName || 'Unknown Student'}</td>
                         <td>{new Date(lesson.startTime).toLocaleDateString()}</td>
                         <td><span className={`status-badge status-${lesson.status}`}>{lesson.status}</span></td>
-                        <td>
-                          <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="coach-action-btn coach-complete font-serif">View / Edit Notes</button>
-                        </td>
+                        <td><button onClick={() => navigate(`/lesson/${lesson.id}`)} className="coach-action-btn coach-complete font-serif">View / Edit Notes</button></td>
                       </tr>
                     ))
                   )}
@@ -286,28 +274,42 @@ const CoachDashboard = () => {
 
         {activeView === 'profile' && (
           <>
-            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Coach Profile</h2>
+            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Coach Profile Management</h2>
             <form className="coach-profile-form" onSubmit={handleSaveProfile}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                <div className="coach-form-group" style={{ marginBottom: 0 }}>
+                  <label>Full Display Name</label>
+                  <input type="text" value={identityForm.fullName} onChange={(e) => setIdentityForm({...identityForm, fullName: e.target.value})} required />
+                </div>
+                <div className="coach-form-group" style={{ marginBottom: 0 }}>
+                  <label>Chess Username Handle</label>
+                  <input type="text" value={identityForm.chessUsername} onChange={(e) => setIdentityForm({...identityForm, chessUsername: e.target.value})} required />
+                </div>
+              </div>
+
+              <div className="coach-form-group">
+                <label>Current Chess ELO Rating</label>
+                <input type="number" value={identityForm.currentElo} onChange={(e) => setIdentityForm({...identityForm, currentElo: Number(e.target.value)})} required />
+                <span style={{ fontSize: '0.85rem', color: '#c25a5a', fontStyle: 'italic', marginTop: '4px' }}>
+                  ⚠️ Note: Adjusting your ELO score will temporarily drop your verification badge until re-checked by an administrator.
+                </span>
+              </div>
+
+              <hr style={{ border: '1px solid #E0D8C8', margin: '2rem 0' }} />
+
               <div className="coach-form-group">
                 <label>Teaching strengths / playstyles</label>
-                <input
-                  value={profile.specialties}
-                  onChange={(e) => setProfile(prev => ({ ...prev, specialties: e.target.value }))}
-                  placeholder="Aggressive openings, endgames, positional play"
-                />
+                <input value={profile.specialties} onChange={(e) => setProfile(prev => ({ ...prev, specialties: e.target.value }))} placeholder="Aggressive openings, endgames, positional play" />
               </div>
 
               <div className="coach-form-group">
                 <label>Short coach bio</label>
-                <textarea
-                  value={profile.bio}
-                  onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
-                  placeholder="Tell students what you help with and who your lessons are best for."
-                />
+                <textarea value={profile.bio} onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))} placeholder="Tell students what you help with and who your lessons are best for." />
               </div>
 
               <div className="coach-availability-header">
-                <h3 className="font-serif">Weekly Availability</h3>
+                <h3 className="font-serif">Weekly Availability Blocks</h3>
                 <button type="button" className="coach-add-slot-btn" onClick={addAvailabilitySlot}>Add Time Slot</button>
               </div>
 
@@ -317,7 +319,6 @@ const CoachDashboard = () => {
                 ) : (
                   profile.availability.map((slot, index) => {
                     const isOverlapping = overlappingAvailabilityIndexes.has(index);
-
                     return (
                       <React.Fragment key={`${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}-${index}`}>
                         <div className={`coach-slot-row ${isOverlapping ? 'coach-slot-row-error' : ''}`}>
@@ -329,9 +330,7 @@ const CoachDashboard = () => {
                           <input type="time" value={slot.endTime || ''} onChange={(e) => updateAvailabilitySlot(index, 'endTime', e.target.value)} />
                           <button type="button" className="coach-remove-slot-btn" onClick={() => removeAvailabilitySlot(index)}>Remove</button>
                         </div>
-                        {isOverlapping && (
-                          <p className="coach-slot-error">Availability slots on the same day cannot overlap.</p>
-                        )}
+                        {isOverlapping && <p className="coach-slot-error">Availability slots on the same day cannot overlap.</p>}
                       </React.Fragment>
                     );
                   })
@@ -339,7 +338,7 @@ const CoachDashboard = () => {
               </div>
 
               <button type="submit" className="coach-save-profile-btn" disabled={isSavingProfile || hasOverlappingAvailabilitySlots}>
-                {isSavingProfile ? 'Saving...' : 'Save Profile'}
+                {isSavingProfile ? 'Saving Complete Profile...' : 'Save Complete Profile'}
               </button>
             </form>
           </>
