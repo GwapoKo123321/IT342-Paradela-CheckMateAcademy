@@ -1,19 +1,25 @@
-.student-layout { display: flex; min-height: 100vh; background-color: #F5F1EA; }
+.student-layout { display: flex; height: 100vh; overflow: hidden; background-color: #F5F1EA; }
 
-.student-sidebar { width: 250px; background-color: #6B4F3A; color: white; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+/* The fix: width is now max-content with a minimum of 250px */
+.student-sidebar { width: max-content; min-width: 250px; background-color: #6B4F3A; color: white; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; height: 100vh; box-sizing: border-box; overflow-y: auto; }
+
+/* Text stays large, never wraps, and the sidebar stretches to fit it */
+.student-sidebar h2 { font-size: 1.5rem !important; white-space: nowrap; text-align: center; margin-bottom: 1rem; margin-top: 0; }
 
 .student-side-btn { background-color: white; color: #6B4F3A; padding: 1rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; text-align: center; }
 .student-side-btn-active { background-color: #C29B31; color: white; }
 
-.student-main-content { flex: 1; padding: 3rem; display: flex; flex-direction: column; align-items: center; }
+.student-main-content { flex: 1; padding: 3rem; display: block; overflow-y: auto; overflow-x: hidden; height: 100vh; box-sizing: border-box; }
+
+.student-main-content > h2 { text-align: center; margin-left: auto; margin-right: auto; }
 
 .student-header { width: 100%; display: flex; justify-content: flex-end; margin-bottom: 2rem; align-items: center; }
 
 .student-logout-btn { background-color: #6B4F3A; color: white; padding: 0.6rem 2rem; border-radius: 999px; border: none; cursor: pointer; font-weight: bold; }
 
 /* Training Board */
-.student-training-view { width: 100%; display: flex; flex-direction: column; align-items: center; }
-.student-training-shell { width: 100%; max-width: 1120px; display: grid; grid-template-columns: minmax(360px, 620px) minmax(280px, 360px); gap: 1.5rem; align-items: stretch; justify-content: center; }
+.student-training-view { width: 100%; display: flex; flex-direction: column; }
+.student-training-shell { width: 100%; max-width: 1120px; display: grid; grid-template-columns: minmax(360px, 620px) minmax(280px, 360px); gap: 1.5rem; align-items: stretch; margin: 0 auto; }
 .student-board-container { background-color: white; padding: 2rem; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
 .student-board-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .student-turn-pill { min-width: 130px; text-align: center; font-weight: 800; padding: 0.6rem 1rem; background-color: #F5F1EA; color: #6B4F3A; border: 2px solid #6B4F3A; border-radius: 999px; }
@@ -43,7 +49,7 @@
 
 @media (max-width: 760px) {
   .student-layout { flex-direction: column; }
-  .student-sidebar { width: auto; }
+  .student-sidebar { width: auto; height: auto; }
   .student-main-content { padding: 1.5rem; }
   .student-training-shell { min-width: 0; }
   .student-board-container, .student-training-panel { border-radius: 18px; padding: 1rem; }
@@ -66,8 +72,6 @@
 .student-slot-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .student-slot-meta span { background-color: #F5F1EA; color: #6B4F3A; border-radius: 999px; padding: 0.35rem 0.7rem; font-size: 0.85rem; font-weight: 700; }
 .student-slot-meta .student-conflict-chip { background-color: #F8D7DA; color: #721C24; }
-.student-availability-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.student-availability-chips span { background-color: #F5F1EA; color: #6B4F3A; border-radius: 999px; padding: 0.35rem 0.7rem; font-size: 0.85rem; font-weight: 700; }
 
 /* Schedule Table */
 .student-table-container { background-color: white; padding: 2.5rem; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 900px; overflow-x: auto; margin: 0 auto; }
@@ -78,10 +82,10 @@
 .student-table td { padding: 1.2rem; border-bottom: 1px solid #eee; color: #333; }
 
 .student-action-btn { background-color: #C29B31; color: white; padding: 0.6rem 1.5rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif; margin-right: 0.5rem; }
-.student-action-btn-secondary { background-color: #6B4F3A; } /* Swapped slate for primary brown */
+.student-action-btn-secondary { background-color: #6B4F3A; }
 
 .status-badge { padding: 0.4rem 1rem; border-radius: 999px; font-weight: bold; font-size: 0.9rem; display: inline-block; }
 .status-PENDING { background-color: #FFF3CD; color: #856404; }
 .status-ACCEPTED { background-color: #D4EDDA; color: #155724; }
 .status-REJECTED { background-color: #F8D7DA; color: #721C24; }
-.status-COMPLETED { background-color: #C29B31; color: white; } /* Swapped slate for Theme Gold */
+.status-COMPLETED { background-color: #C29B31; color: white; }

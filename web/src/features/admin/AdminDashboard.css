@@ -1,24 +1,40 @@
-.admin-layout { display: flex; min-height: 100vh; background-color: #F5F1EA; font-family: 'Inter', sans-serif; }
-.admin-sidebar { width: 250px; background-color: #1a1a1a; color: white; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
-.admin-main-content { flex: 1; padding: 3rem; display: flex; flex-direction: column; align-items: center; }
+.admin-layout { display: flex; height: 100vh; overflow: hidden; background-color: #F5F1EA; font-family: 'Inter', sans-serif; }
+
+.admin-sidebar { width: 250px; background-color: #1a1a1a; color: white; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; height: 100vh; box-sizing: border-box; overflow-y: auto; }
+
+/* Fixes long titles getting cut off when zoomed in */
+.admin-sidebar h2 { font-size: 1.6rem !important; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.2; text-align: center; margin-bottom: 1rem; }
+
+.admin-main-content { flex: 1; padding: 3rem; display: block; overflow-y: auto; overflow-x: hidden; height: 100vh; box-sizing: border-box; }
+
+/* Centers the titles without breaking the layout when zoomed */
+.admin-main-content > h2 { text-align: center; margin-left: auto; margin-right: auto; }
+
 .admin-header { width: 100%; display: flex; justify-content: flex-end; margin-bottom: 2rem; align-items: center; }
+
 .admin-logout-btn { background-color: #1a1a1a; color: white; padding: 0.6rem 2rem; border-radius: 999px; border: none; cursor: pointer; font-weight: bold; }
+
 .admin-table-container { background-color: white; padding: 2.5rem; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 1000px; overflow-x: auto; margin: 0 auto; }
+
 .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
 .admin-table th { background-color: #1a1a1a; color: white; padding: 1.2rem; font-family: 'Arvo', serif; font-size: 1.1rem; }
 .admin-table th:first-child { border-top-left-radius: 15px; border-bottom-left-radius: 15px; }
 .admin-table th:last-child { border-top-right-radius: 15px; border-bottom-right-radius: 15px; }
 .admin-table td { padding: 1.2rem; border-bottom: 1px solid #eee; color: #333; }
+
 .admin-select { padding: 0.6rem; border-radius: 8px; border: 1px solid #ccc; font-family: 'Inter', sans-serif; margin-right: 10px; font-weight: bold; }
 .admin-delete-btn { background-color: #F44336; color: white; padding: 0.6rem 1.2rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; }
+
 .admin-role-badge { padding: 0.4rem 1rem; border-radius: 999px; font-weight: bold; font-size: 0.85rem; display: inline-block; }
 .role-Admin { background-color: #1a1a1a; color: white; }
 .role-Coach { background-color: #6B4F3A; color: white; }
 .role-Student { background-color: #C29B31; color: white; }
+
 .admin-action-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .admin-toggle-btn { padding: 0.5rem 1rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
 .admin-btn-flagged { background-color: #F8D7DA; color: #721C24; border: 2px solid #F5C6CB; }
 .admin-btn-clean { background-color: #E2E3E5; color: #383D41; }
 .admin-btn-verified { background-color: #D4EDDA; color: #155724; border: 2px solid #C3E6CB; }
 .admin-btn-unverified { background-color: #FFF3CD; color: #856404; }
+
 .user-row-flagged { background-color: #fffafb !important; }

@@ -11,7 +11,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import bookingService from './bookingService';
-
+import authService from '../auth/authService';
 import './StudentDashboard.css';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -25,7 +25,7 @@ const PLAYSTYLE_OPTIONS = [
   'Strategy',
 ];
 
-const STUDENT_VIEWS = ['schedule', 'reviews', 'booking', 'board'];
+const STUDENT_VIEWS = ['schedule', 'reviews', 'booking', 'board', 'profile'];
 
 const formatLocalDateTime = (date) => {
   const pad = (value) => String(value).padStart(2, '0');
@@ -47,13 +47,14 @@ const formatBookingDate = (value) => new Date(`${value}T00:00:00`).toLocaleDateS
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
   const activeViewStorageKey = `student-dashboard-view-${user.id || 'guest'}`;
 
   const [activeView, setActiveView] = useState(() => {
     const savedView = localStorage.getItem(activeViewStorageKey);
     return STUDENT_VIEWS.includes(savedView) ? savedView : 'schedule';
   });
+
   const [availableSlots, setAvailableSlots] = useState([]);
   const [myLessons, setMyLessons] = useState([]);
 
@@ -61,6 +62,10 @@ const StudentDashboard = () => {
   const [bookingDate, setBookingDate] = useState('');
   const [preferredStyle, setPreferredStyle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Profile Edit State
+  const [profileForm, setProfileForm] = useState({ fullName: user.fullName || '', chessUsername: user.chessUsername || '', currentElo: user.currentElo || 0 });
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   const [trainingFen, setTrainingFen] = useState(START_FEN);
   const [trainingMoves, setTrainingMoves] = useState([]);
@@ -118,6 +123,22 @@ const StudentDashboard = () => {
     navigate('/login');
   };
 
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setIsSavingProfile(true);
+    try {
+      const updatedUser = await authService.updateProfile(user.id, profileForm);
+      updatedUser.role = user.role;
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      alert("Profile updated successfully!");
+    } catch (error) {
+      alert("Failed to update profile changes.");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
     const selectedSlot = availableSlots.find(slot => getSlotKey(slot) === selectedSlotKey);
@@ -155,11 +176,7 @@ const StudentDashboard = () => {
 
   const replayTrainingLine = (moves = trainingMoves) => {
     const game = new Chess();
-
-    for (const san of moves) {
-      game.move(san);
-    }
-
+    for (const san of moves) { game.move(san); }
     return game;
   };
 
@@ -169,10 +186,7 @@ const StudentDashboard = () => {
 
     for (const san of trainingMoves) {
       replayBoard.move(san);
-      nextHistory.push({
-        san,
-        fen: replayBoard.fen()
-      });
+      nextHistory.push({ san, fen: replayBoard.fen() });
     }
 
     setTrainingHistory(nextHistory);
@@ -198,14 +212,9 @@ const StudentDashboard = () => {
     try {
       const baseMoves = trainingMoves.slice(0, trainingViewIndex + 1);
       const game = replayTrainingLine(baseMoves);
-      const move = game.move({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion: 'q',
-      });
+      const move = game.move({ from: sourceSquare, to: targetSquare, promotion: 'q' });
 
       if (!move) return false;
-
       setTrainingMoves([...baseMoves, move.san]);
       return true;
     } catch (error) {
@@ -235,6 +244,7 @@ const StudentDashboard = () => {
         <button className={`student-side-btn font-serif ${activeView === 'reviews' ? 'student-side-btn-active' : ''}`} onClick={() => setActiveView('reviews')}>Lesson Reviews</button>
         <button className={`student-side-btn font-serif ${activeView === 'booking' ? 'student-side-btn-active' : ''}`} onClick={() => setActiveView('booking')}>Book a Lesson</button>
         <button className={`student-side-btn font-serif ${activeView === 'board' ? 'student-side-btn-active' : ''}`} onClick={() => setActiveView('board')}>Training Board</button>
+        <button className={`student-side-btn font-serif ${activeView === 'profile' ? 'student-side-btn-active' : ''}`} onClick={() => setActiveView('profile')}>Account Profile</button>
       </aside>
 
       <main className="student-main-content">
@@ -242,6 +252,31 @@ const StudentDashboard = () => {
           <span style={{ marginRight: '1.5rem', fontWeight: 'bold' }}>{user?.fullName} (Student)</span>
           <button onClick={handleLogout} className="student-logout-btn font-serif">Logout</button>
         </div>
+
+        {activeView === 'profile' && (
+          <>
+            <h2 className="font-serif" style={{ color: '#6B4F3A', marginBottom: '2rem', fontSize: '2.5rem' }}>Edit Profile</h2>
+            <div className="student-booking-section">
+              <form onSubmit={handleProfileUpdate}>
+                <div className="student-form-group">
+                  <label>Full Name</label>
+                  <input type="text" className="student-date-input" value={profileForm.fullName} onChange={(e) => setProfileForm({...profileForm, fullName: e.target.value})} required />
+                </div>
+                <div className="student-form-group">
+                  <label>Chess Username</label>
+                  <input type="text" className="student-date-input" value={profileForm.chessUsername} onChange={(e) => setProfileForm({...profileForm, chessUsername: e.target.value})} placeholder="Chess.com or Lichess handle" />
+                </div>
+                <div className="student-form-group">
+                  <label>Personal ELO Rating</label>
+                  <input type="number" className="student-date-input" value={profileForm.currentElo} onChange={(e) => setProfileForm({...profileForm, currentElo: Number(e.target.value)})} />
+                </div>
+                <button type="submit" className="student-submit-btn" disabled={isSavingProfile}>
+                  {isSavingProfile ? 'Saving...' : 'Save Updates'}
+                </button>
+              </form>
+            </div>
+          </>
+        )}
 
         {activeView === 'board' && (
           <div className="student-training-view">
@@ -252,44 +287,19 @@ const StudentDashboard = () => {
                   <span className={`student-turn-pill ${trainingTurn === 'Black' ? 'student-turn-pill-dark' : ''}`}>
                     {trainingTurn} to move
                   </span>
-                  <button
-                    type="button"
-                    className="student-icon-btn"
-                    onClick={() => setTrainingOrientation(prev => prev === 'white' ? 'black' : 'white')}
-                    title="Flip board"
-                    aria-label="Flip board"
-                  >
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingOrientation(prev => prev === 'white' ? 'black' : 'white')} title="Flip board">
                     <RefreshCw size={18} />
                   </button>
                 </div>
-
                 <div className="student-training-board">
-                  <Chessboard
-                    options={{
-                      position: currentTrainingFen,
-                      onPieceDrop: onTrainingDrop,
-                      boardOrientation: trainingOrientation,
-                      animationDurationInMs: 160,
-                    }}
-                  />
+                  <Chessboard options={{ position: currentTrainingFen, onPieceDrop: onTrainingDrop, boardOrientation: trainingOrientation, animationDurationInMs: 160 }} />
                 </div>
-
                 <div className="student-board-controls">
-                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(-1)} disabled={!canStepBack} title="Start" aria-label="Start">
-                    <ChevronsLeft size={18} />
-                  </button>
-                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(prev => Math.max(-1, prev - 1))} disabled={!canStepBack} title="Previous move" aria-label="Previous move">
-                    <ChevronLeft size={18} />
-                  </button>
-                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(prev => Math.min(trainingHistory.length - 1, prev + 1))} disabled={!canStepForward} title="Next move" aria-label="Next move">
-                    <ChevronRight size={18} />
-                  </button>
-                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(trainingHistory.length - 1)} disabled={!canStepForward} title="Latest move" aria-label="Latest move">
-                    <ChevronsRight size={18} />
-                  </button>
-                  <button type="button" className="student-icon-btn" onClick={undoTrainingMove} disabled={trainingMoves.length === 0} title="Undo last move" aria-label="Undo last move">
-                    <RotateCcw size={18} />
-                  </button>
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(-1)} disabled={!canStepBack}><ChevronsLeft size={18} /></button>
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(prev => Math.max(-1, prev - 1))} disabled={!canStepBack}><ChevronLeft size={18} /></button>
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(prev => Math.min(trainingHistory.length - 1, prev + 1))} disabled={!canStepForward}><ChevronRight size={18} /></button>
+                  <button type="button" className="student-icon-btn" onClick={() => setTrainingViewIndex(trainingHistory.length - 1)} disabled={!canStepForward}><ChevronsRight size={18} /></button>
+                  <button type="button" className="student-icon-btn" onClick={undoTrainingMove} disabled={trainingMoves.length === 0}><RotateCcw size={18} /></button>
                 </div>
               </section>
 
@@ -307,26 +317,8 @@ const StudentDashboard = () => {
                           return (
                             <tr key={rowIndex}>
                               <td className="student-move-number">{rowIndex + 1}.</td>
-                              <td>
-                                <button
-                                  type="button"
-                                  className={`student-move-btn ${trainingViewIndex === whiteIndex ? 'student-move-btn-active' : ''}`}
-                                  onClick={() => setTrainingViewIndex(whiteIndex)}
-                                >
-                                  {trainingHistory[whiteIndex]?.san}
-                                </button>
-                              </td>
-                              <td>
-                                {trainingHistory[blackIndex] && (
-                                  <button
-                                    type="button"
-                                    className={`student-move-btn ${trainingViewIndex === blackIndex ? 'student-move-btn-active' : ''}`}
-                                    onClick={() => setTrainingViewIndex(blackIndex)}
-                                  >
-                                    {trainingHistory[blackIndex].san}
-                                  </button>
-                                )}
-                              </td>
+                              <td><button type="button" className={`student-move-btn ${trainingViewIndex === whiteIndex ? 'student-move-btn-active' : ''}`} onClick={() => setTrainingViewIndex(whiteIndex)}>{trainingHistory[whiteIndex]?.san}</button></td>
+                              <td>{trainingHistory[blackIndex] && ( <button type="button" className={`student-move-btn ${trainingViewIndex === blackIndex ? 'student-move-btn-active' : ''}`} onClick={() => setTrainingViewIndex(blackIndex)}>{trainingHistory[blackIndex].san}</button>)}</td>
                             </tr>
                           );
                         })}
@@ -334,9 +326,7 @@ const StudentDashboard = () => {
                     </table>
                   )}
                 </div>
-                <button type="button" className="student-clear-line-btn" onClick={resetTrainingBoard} disabled={trainingMoves.length === 0}>
-                  Clear Line
-                </button>
+                <button type="button" className="student-clear-line-btn" onClick={resetTrainingBoard} disabled={trainingMoves.length === 0}>Clear Line</button>
               </aside>
             </div>
           </div>
@@ -349,34 +339,15 @@ const StudentDashboard = () => {
               <form onSubmit={handleBookingSubmit}>
                 <div className="student-form-group">
                   <label>Select Date</label>
-                  <input
-                    type="date"
-                    className="student-date-input"
-                    value={bookingDate}
-                    min={todayInputValue}
-                    onChange={(e) => {
-                      setBookingDate(e.target.value);
-                      setSelectedSlotKey('');
-                    }}
-                    required
-                  />
+                  <input type="date" className="student-date-input" value={bookingDate} min={todayInputValue} onChange={(e) => { setBookingDate(e.target.value); setSelectedSlotKey(''); }} required />
                 </div>
-
                 <div className="student-form-group">
                   <label>Preferred Playstyle</label>
-                  <select
-                    className="student-select"
-                    value={preferredStyle}
-                    onChange={(e) => {
-                      setPreferredStyle(e.target.value);
-                      setSelectedSlotKey('');
-                    }}
-                  >
+                  <select className="student-select" value={preferredStyle} onChange={(e) => { setPreferredStyle(e.target.value); setSelectedSlotKey(''); }}>
                     <option value="">Any playstyle</option>
                     {PLAYSTYLE_OPTIONS.map(style => <option key={style} value={style}>{style}</option>)}
                   </select>
                 </div>
-
                 <div className="student-form-group">
                   <label>Available Lesson Times</label>
                   <div className="student-coach-results">
@@ -387,19 +358,17 @@ const StudentDashboard = () => {
                     ) : (
                       availableSlots.map(slot => {
                         const isConflicting = Boolean(slot.studentConflict);
-
                         return (
-                          <button
-                            type="button"
-                            key={getSlotKey(slot)}
-                            className={`student-coach-card ${selectedSlotKey === getSlotKey(slot) ? 'student-coach-card-active' : ''} ${isConflicting ? 'student-coach-card-conflict' : ''}`}
-                            onClick={() => {
-                              if (!isConflicting) setSelectedSlotKey(getSlotKey(slot));
-                            }}
-                            disabled={isConflicting}
-                          >
+                          <button type="button" key={getSlotKey(slot)} className={`student-coach-card ${selectedSlotKey === getSlotKey(slot) ? 'student-coach-card-active' : ''} ${isConflicting ? 'student-coach-card-conflict' : ''}`} onClick={() => { if (!isConflicting) setSelectedSlotKey(getSlotKey(slot)); }} disabled={isConflicting}>
                             <div>
-                              <strong>{slot.coachName}</strong>
+                              <strong>
+                                {slot.coachName}
+                                {slot.eloVerified && (
+                                  <span style={{ backgroundColor: '#C29B31', color: 'white', fontSize: '0.75rem', padding: '3px 8px', borderRadius: '12px', marginLeft: '8px', fontWeight: 'bold' }}>
+                                    ✓ Verified Coach
+                                  </span>
+                                )}
+                              </strong>
                               <span>{formatSlotTime(slot.startTime)} - {formatSlotTime(slot.endTime)}</span>
                             </div>
                             <p>{slot.specialties || 'No playstyle listed yet.'}</p>
@@ -437,11 +406,7 @@ const StudentDashboard = () => {
                         <td style={{ fontWeight: 'bold' }}>{lesson.coachName}</td>
                         <td>{new Date(lesson.startTime).toLocaleString()}</td>
                         <td><span className={`status-badge status-${lesson.status}`}>{lesson.status}</span></td>
-                        <td>
-                          {lesson.status === 'ACCEPTED' && (
-                            <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="student-action-btn font-serif">Join Lesson</button>
-                          )}
-                        </td>
+                        <td>{lesson.status === 'ACCEPTED' && ( <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="student-action-btn font-serif">Join Lesson</button>)}</td>
                       </tr>
                     ))
                   )}
@@ -466,9 +431,7 @@ const StudentDashboard = () => {
                         <td style={{ fontWeight: 'bold' }}>{lesson.coachName}</td>
                         <td>{new Date(lesson.startTime).toLocaleDateString()}</td>
                         <td><span className={`status-badge status-${lesson.status}`}>{lesson.status}</span></td>
-                        <td>
-                          <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="student-action-btn student-action-btn-secondary font-serif">View Notes</button>
-                        </td>
+                        <td><button onClick={() => navigate(`/lesson/${lesson.id}`)} className="student-action-btn student-action-btn-secondary font-serif">View Notes</button></td>
                       </tr>
                     ))
                   )}

@@ -14,6 +14,7 @@ public class CoachProfileResponse {
     private String role;
     private String chessUsername;
     private Integer currentElo;
+    private boolean eloVerified;
     private String specialties;
     private String bio;
     private List<CoachAvailability> availability = new ArrayList<>();
@@ -25,6 +26,10 @@ public class CoachProfileResponse {
         this.role = user.getRole();
         this.chessUsername = user.getChessUsername();
         this.currentElo = user.getCurrentElo();
+
+
+        this.eloVerified = user.getEloVerified() != null ? user.getEloVerified() : false;
+
         this.specialties = profile != null ? profile.getSpecialties() : "";
         this.bio = profile != null ? profile.getBio() : "";
         this.availability = availability;
