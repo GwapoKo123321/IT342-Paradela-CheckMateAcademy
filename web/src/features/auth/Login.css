@@ -6,7 +6,7 @@
   flex-direction: column;
   background-color: #F5F1EA;
   font-family: 'Inter', sans-serif;
-  margin: -8px; /* Matches the global reset behavior in Register */
+  margin: -8px;
 }
 
 .login-navbar {

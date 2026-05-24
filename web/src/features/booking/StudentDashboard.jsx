@@ -47,11 +47,11 @@ const formatBookingDate = (value) => new Date(`${value}T00:00:00`).toLocaleDateS
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
+  const [user, setUser] = useState(() => JSON.parse(sessionStorage.getItem('user') || '{}'));
   const activeViewStorageKey = `student-dashboard-view-${user.id || 'guest'}`;
 
   const [activeView, setActiveView] = useState(() => {
-    const savedView = localStorage.getItem(activeViewStorageKey);
+    const savedView = sessionStorage.getItem(activeViewStorageKey);
     return STUDENT_VIEWS.includes(savedView) ? savedView : 'schedule';
   });
 
@@ -76,7 +76,7 @@ const StudentDashboard = () => {
   const todayInputValue = formatLocalDateTime(new Date()).slice(0, 10);
 
   useEffect(() => {
-    localStorage.setItem(activeViewStorageKey, activeView);
+    sessionStorage.setItem(activeViewStorageKey, activeView);
   }, [activeView, activeViewStorageKey]);
 
   useEffect(() => {
@@ -119,7 +119,7 @@ const StudentDashboard = () => {
   }, [activeView, user.id, bookingDate, preferredStyle]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     navigate('/login');
   };
 
@@ -129,7 +129,7 @@ const StudentDashboard = () => {
     try {
       const updatedUser = await authService.updateProfile(user.id, profileForm);
       updatedUser.role = user.role;
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
       alert("Profile updated successfully!");
     } catch (error) {

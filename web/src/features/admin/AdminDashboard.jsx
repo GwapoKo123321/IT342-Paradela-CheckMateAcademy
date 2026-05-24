@@ -6,7 +6,7 @@ import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}');
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
 
@@ -38,7 +38,7 @@ const AdminDashboard = () => {
   }, [user.role, navigate]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     navigate('/login');
   };
 

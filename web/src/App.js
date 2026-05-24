@@ -9,7 +9,7 @@ import AdminDashboard from './features/admin/AdminDashboard';
 import ActiveLesson from './features/active-session/ActiveLesson';
 
 const DashboardFactory = () => {
-  const userStr = localStorage.getItem('user');
+  const userStr = sessionStorage.getItem('user');
   if (!userStr) return <Navigate to="/login" />;
   const user = JSON.parse(userStr);
 

@@ -12,7 +12,7 @@ const Login = () => {
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
-    setErrorMsg(''); // Clear error when they try typing again
+    setErrorMsg('');
   };
 
   const handleSubmit = async (e) => {

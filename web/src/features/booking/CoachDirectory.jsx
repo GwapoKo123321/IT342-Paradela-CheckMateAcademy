@@ -6,7 +6,7 @@ const CoachDirectory = () => {
 
   const handleBooking = async (coachId) => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = JSON.parse(sessionStorage.getItem('user'));
       const bookingData = {
         coachId: coachId,
         studentId: user.id,

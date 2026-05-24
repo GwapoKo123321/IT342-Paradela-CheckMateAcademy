@@ -3,8 +3,9 @@ import apiClient from '../core/apiClient';
 const loginUser = async (credentials) => {
     const response = await apiClient.post('/auth/login', credentials);
     if (response.data.success) {
-        localStorage.setItem('token', response.data.data.accessToken);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+
+        sessionStorage.setItem('token', response.data.data.accessToken);
+        sessionStorage.setItem('user', JSON.stringify(response.data.data.user));
         return response.data.data;
     }
     throw new Error("Login failed");

@@ -68,12 +68,12 @@ const findNextAvailableSlot = (availability) => {
 
 const CoachDashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
+  const [user, setUser] = useState(() => JSON.parse(sessionStorage.getItem('user') || '{}'));
   const activeViewStorageKey = `coach-dashboard-view-${user.id || 'guest'}`;
   const [lessons, setLessons] = useState([]);
 
   const [activeView, setActiveView] = useState(() => {
-    const savedView = localStorage.getItem(activeViewStorageKey);
+    const savedView = sessionStorage.getItem(activeViewStorageKey);
     return COACH_VIEWS.includes(savedView) ? savedView : 'schedule';
   });
 
@@ -114,7 +114,7 @@ const CoachDashboard = () => {
   }, [user.id, loadLessons]);
 
   useEffect(() => {
-    localStorage.setItem(activeViewStorageKey, activeView);
+    sessionStorage.setItem(activeViewStorageKey, activeView);
   }, [activeView, activeViewStorageKey]);
 
   useEffect(() => {
@@ -122,7 +122,7 @@ const CoachDashboard = () => {
   }, [activeView, user?.id, loadProfile]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     navigate('/login');
   };
 
@@ -170,7 +170,7 @@ const CoachDashboard = () => {
     try {
       const updatedUser = await authService.updateProfile(user.id, identityForm);
       updatedUser.role = user.role;
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
 
       const savedProfile = await bookingService.saveCoachProfile(user.id, profile);
