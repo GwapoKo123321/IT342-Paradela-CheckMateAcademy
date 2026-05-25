@@ -1,0 +1,7 @@
+<resources xmlns:tools="http://tools.google.com/tools">
+    <style name="Theme.CheckMateAcademy" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary_brand</item>
+        <item name="android:windowBackground">@color/secondary_bg</item>
+        <item name="android:statusBarColor">@color/primary_brand</item>
+    </style>
+</resources>

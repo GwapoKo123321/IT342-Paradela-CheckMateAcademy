@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/secondary_bg">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/headerBar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primary_brand"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lesson Review "
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="serif"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#4B5563"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:text="COMPLETED"
+                    android:textColor="@color/white"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/tvReviewOpponent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Magnus Carlsen vs Hikaru Nakamura"
+                android:textColor="#D1D1D1"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnBackToDashboard"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            android:backgroundTint="@color/accent_gold"
+            android:text="Back"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:fontFamily="serif"
+            android:textStyle="bold"
+            app:cornerRadius="999dp" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/headerBar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_pill_input"
+                            android:backgroundTint="@color/secondary_bg"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="6dp"
+                            android:text="White to Move"
+                            android:textColor="@color/text_dark"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <Button
+                            android:id="@+id/btnReviewFlip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:backgroundTint="@color/primary_brand"
+                            android:text="Flip Board"
+                            android:textColor="@color/white"
+                            android:textSize="10sp"
+                            app:cornerRadius="8dp" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="350dp"
+                        android:background="#D18B47">
+                        <WebView
+                            android:id="@+id/reviewChessWebView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+                    </FrameLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:fontFamily="serif"
+                        android:text="Move History"
+                        android:textColor="@color/primary_brand"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <ScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:background="@drawable/bg_pill_input"
+                        android:backgroundTint="@color/secondary_bg"
+                        android:padding="12dp"
+                        android:layout_marginBottom="12dp">
+                        <TextView
+                            android:id="@+id/tvReviewHistoryList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="1. d4 d5\n2. Nf3 Nf6\n3. Nc3 Nc6..."
+                            android:textColor="@color/text_dark"
+                            android:lineSpacingExtra="4dp" />
+                    </ScrollView>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp">
+
+                        <Button android:layout_width="60dp" android:layout_height="40dp" android:text="|&lt;" android:backgroundTint="@color/secondary_bg" android:textColor="@color/text_dark" android:layout_marginEnd="8dp"/>
+                        <Button android:layout_width="60dp" android:layout_height="40dp" android:text="&lt;" android:backgroundTint="@color/secondary_bg" android:textColor="@color/text_dark" android:layout_marginEnd="8dp"/>
+                        <Button android:layout_width="60dp" android:layout_height="40dp" android:text="&gt;" android:backgroundTint="@color/secondary_bg" android:textColor="@color/text_dark" android:layout_marginEnd="8dp"/>
+                        <Button android:layout_width="60dp" android:layout_height="40dp" android:text="&gt;|" android:backgroundTint="@color/secondary_bg" android:textColor="@color/text_dark"/>
+                    </LinearLayout>
+
+                    <Button
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:backgroundTint="#A0AEC0"
+                        android:text="Save Current Board State"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:enabled="false"
+                        app:cornerRadius="8dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="350dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/primary_brand"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:fontFamily="serif"
+                        android:text="Live Chat"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <ScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_pill_input"
+                        android:backgroundTint="@color/white"
+                        android:padding="12dp"
+                        android:layout_marginBottom="12dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Test USER • 01:44 PM"
+                                android:textSize="10sp"
+                                android:textColor="#A0AEC0"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Bayot ka"
+                                android:padding="8dp"
+                                android:background="@drawable/bg_pill_input"
+                                android:backgroundTint="@color/secondary_bg"
+                                android:textColor="@color/text_dark"
+                                android:layout_marginBottom="12dp"/>
+                        </LinearLayout>
+                    </ScrollView>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_pill_input"
+                            android:backgroundTint="#9CA3AF"
+                            android:hint="Chat disabled (Session Completed)"
+                            android:textColorHint="#E5E7EB"
+                            android:paddingHorizontal="16dp"
+                            android:enabled="false"
+                            android:layout_marginEnd="8dp"/>
+
+                        <Button
+                            android:layout_width="wrap_content"
+                            android:layout_height="48dp"
+                            android:backgroundTint="#9CA3AF"
+                            android:text="Send"
+                            android:textColor="@color/white"
+                            android:enabled="false"
+                            app:cornerRadius="999dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; background-color: #F3EEE6; touch-action: none; overflow: hidden; }
+        #board { width: 100vw; height: 100vw; max-height: 100vh; margin: 0 auto; }
+
+        /* Highlight squares when selected */
+        .highlight-white { box-shadow: inset 0 0 3px 3px yellow; }
+        .highlight-black { box-shadow: inset 0 0 3px 3px yellow; }
+    </style>
+</head>
+<body>
+
+<div id="board"></div>
+
+<script>
+    var board = null;
+    var game = new Chess();
+    var whiteSquareGrey = '#a9a9a9';
+    var blackSquareGrey = '#696969';
+    var selectedSquare = null;
+
+    // Remove Highlights
+    function removeHighlights () {
+      $('#board .square-55d63').css('background', '');
+      selectedSquare = null;
+    }
+
+    // Highlight a single square
+    function highlightSquare (square) {
+      var $square = $('#board .square-' + square);
+      var background = whiteSquareGrey;
+      if ($square.hasClass('black-3c85d')) {
+        background = blackSquareGrey;
+      }
+      $square.css('background', background);
+    }
+
+    // Mobile TAP TO MOVE Logic
+    $('#board').on('click', '.square-55d63', function (e) {
+      var square = $(this).attr('data-square');
+      var piece = game.get(square);
+
+      // 1. If no square is selected yet, and we clicked our own piece, select it.
+      if (selectedSquare === null) {
+          if (piece && piece.color === game.turn()) {
+              selectedSquare = square;
+              highlightSquare(square);
+          }
+          return;
+      }
+
+      // 2. If a square is already selected...
+      // Let's try to move there.
+      var move = game.move({
+        from: selectedSquare,
+        to: square,
+        promotion: 'q' // Always promote to queen for simplicity in UI testing
+      });
+
+      // If the move was invalid...
+      if (move === null) {
+          // Did we click a different piece of our own color? Select that one instead.
+          if (piece && piece.color === game.turn()) {
+              removeHighlights();
+              selectedSquare = square;
+              highlightSquare(square);
+          } else {
+              // Clicked somewhere invalid, just deselect
+              removeHighlights();
+          }
+      } else {
+          // Move was VALID!
+          removeHighlights();
+          board.position(game.fen()); // Update the visual board
+      }
+    });
+
+    // Setup the Board Configuration
+   var config = {
+        draggable: true,
+        position: 'start',
+
+        // POINT TO THE LOCAL FOLDER INSTEAD OF THE INTERNET
+        pieceTheme: 'img/chesspieces/wikipedia/{piece}.png',
+
+        // Handle physical dragging (still works alongside tapping)
+        onDragStart: function(source, piece, position, orientation) {
+            removeHighlights();
+            // Only pick up pieces for the side whose turn it is
+            if (game.game_over()) return false;
+            if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+                (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+        },
+        onDrop: function(source, target) {
+            // See if the move is legal
+            var move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q'
+            });
+            // If illegal move, snap back
+            if (move === null) return 'snapback';
+        },
+        onSnapEnd: function() {
+            board.position(game.fen());
+        }
+    };
+
+    setTimeout(function() {
+        board = Chessboard('board', config);
+
+        // Force the board to resize itself to perfectly fit the container
+        $(window).resize(board.resize);
+    }, 250);
+
+    // Kotlin Interface Functions
+    function clearBoard() { board.clear(); game.reset(); }
+    function resetBoard() { board.start(); game.reset(); }
+    function flipBoard() { board.flip(); }
+</script>
+</body>
+</html>

@@ -16,26 +16,45 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
+        Map<String, Object> response = new HashMap<>();
+
+
         if (authService.emailExists(user.getEmail())) {
-            return ResponseEntity.badRequest().body("Email already in use!");
+            response.put("success", false);
+            response.put("message", "Registration Failed. Email may already be in use.");
+            return ResponseEntity.badRequest().body(response);
         }
-        return ResponseEntity.ok(authService.registerUser(user));
+
+
+        User savedUser = authService.registerUser(user);
+        response.put("success", true);
+        response.put("message", "Account Created!");
+        response.put("token", "session-" + savedUser.getId());
+        response.put("role", savedUser.getRole());
+        response.put("userId", String.valueOf(savedUser.getId()));
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        Map<String, Object> response = new HashMap<>();
+
         return authService.authenticate(credentials.get("email"), credentials.get("password"))
                 .map(user -> {
-                    Map<String, Object> response = new HashMap<>();
+
                     response.put("success", true);
-
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("user", user);
-                    data.put("accessToken", "session-" + user.getId());
-
-                    response.put("data", data);
+                    response.put("message", "Login successful!");
+                    response.put("token", "session-" + user.getId());
+                    response.put("role", user.getRole());
+                    response.put("userId", String.valueOf(user.getId()));
                     return ResponseEntity.ok(response);
                 })
-                .orElse(ResponseEntity.status(401).build());
+                .orElseGet(() -> {
+
+                    response.put("success", false);
+                    response.put("message", "Invalid Credentials");
+                    return ResponseEntity.status(401).body(response);
+                });
     }
 }

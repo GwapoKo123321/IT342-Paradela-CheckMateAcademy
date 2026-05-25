@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/secondary_bg">
+
+    <LinearLayout
+        android:id="@+id/navbar"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="@color/primary_brand"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:text="CheckMateAcademy"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/navbar"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingVertical="32dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24dp"
+                app:cardBackgroundColor="@color/primary_brand"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="32dp"
+                    android:paddingBottom="24dp"
+                    android:paddingHorizontal="24dp"
+                    android:gravity="center_horizontal">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="24dp">
+
+                        <Button
+                            android:id="@+id/btnToggleStudent"
+                            android:layout_width="120dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="12dp"
+                            android:backgroundTint="@color/accent_gold"
+                            android:text="Student"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif"
+                            app:cornerRadius="16dp" />
+
+                        <Button
+                            android:id="@+id/btnToggleCoach"
+                            android:layout_width="120dp"
+                            android:layout_height="48dp"
+                            android:backgroundTint="@color/white"
+                            android:text="Coach"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:fontFamily="serif"
+                            app:cornerRadius="16dp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="24dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="24dp"
+                            android:gravity="center_horizontal">
+
+                            <EditText
+                                android:id="@+id/etRegEmail"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="12dp"
+                                android:background="@drawable/bg_pill_input"
+                                android:hint="Email Address"
+                                android:inputType="textEmailAddress"
+                                android:textColor="@color/white"
+                                android:textColorHint="#B3FFFFFF"
+                                android:textAlignment="center" />
+
+                            <EditText
+                                android:id="@+id/etRegPassword"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="12dp"
+                                android:background="@drawable/bg_pill_input"
+                                android:hint="Password (Min 6 chars)"
+                                android:inputType="textPassword"
+                                android:textColor="@color/white"
+                                android:textColorHint="#B3FFFFFF"
+                                android:textAlignment="center" />
+
+                            <EditText
+                                android:id="@+id/etRegFullName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="12dp"
+                                android:background="@drawable/bg_pill_input"
+                                android:hint="Full Display Name"
+                                android:inputType="textPersonName"
+                                android:textColor="@color/white"
+                                android:textColorHint="#B3FFFFFF"
+                                android:textAlignment="center" />
+
+                            <EditText
+                                android:id="@+id/etRegElo"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="12dp"
+                                android:background="@drawable/bg_pill_input"
+                                android:hint="Current ELO Rating"
+                                android:inputType="number"
+                                android:textColor="@color/white"
+                                android:textColorHint="#B3FFFFFF"
+                                android:textAlignment="center"
+                                android:visibility="gone" />
+
+                            <EditText
+                                android:id="@+id/etRegHandle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="24dp"
+                                android:background="@drawable/bg_pill_input"
+                                android:hint="Chess.com / Lichess"
+                                android:inputType="text"
+                                android:textColor="@color/white"
+                                android:textColorHint="#B3FFFFFF"
+                                android:textAlignment="center"
+                                android:visibility="gone" />
+
+                            <Button
+                                android:id="@+id/btnSubmitRegister"
+                                android:layout_width="wrap_content"
+                                android:layout_height="52dp"
+                                android:minWidth="160dp"
+                                android:layout_marginTop="8dp"
+                                android:backgroundTint="@color/primary_brand"
+                                android:text="Register"
+                                android:textColor="@color/white"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:fontFamily="serif"
+                                app:cornerRadius="999dp" />
+
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:id="@+id/tvGoToLogin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="Already have an account? Login"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:fontFamily="serif"
+                        android:textStyle="bold"
+                        android:padding="8dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
