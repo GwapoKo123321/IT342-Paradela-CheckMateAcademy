@@ -18,13 +18,11 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
 
-
         if (authService.emailExists(user.getEmail())) {
             response.put("success", false);
             response.put("message", "Registration Failed. Email may already be in use.");
             return ResponseEntity.badRequest().body(response);
         }
-
 
         User savedUser = authService.registerUser(user);
         response.put("success", true);
@@ -42,16 +40,22 @@ public class AuthController {
 
         return authService.authenticate(credentials.get("email"), credentials.get("password"))
                 .map(user -> {
-
+                    // 1. FOR ANDROID: Flat root-level variables
                     response.put("success", true);
                     response.put("message", "Login successful!");
                     response.put("token", "session-" + user.getId());
                     response.put("role", user.getRole());
                     response.put("userId", String.valueOf(user.getId()));
+
+                    // 2. FOR THE WEB APP: The original nested 'data' object it requires
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("user", user);
+                    data.put("accessToken", "session-" + user.getId());
+                    response.put("data", data);
+
                     return ResponseEntity.ok(response);
                 })
                 .orElseGet(() -> {
-
                     response.put("success", false);
                     response.put("message", "Invalid Credentials");
                     return ResponseEntity.status(401).body(response);
