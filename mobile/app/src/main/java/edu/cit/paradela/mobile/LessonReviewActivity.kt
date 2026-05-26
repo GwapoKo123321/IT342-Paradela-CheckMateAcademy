@@ -283,8 +283,6 @@ class LessonReviewActivity : AppCompatActivity() {
     private fun addChatBubble(name: String, role: String, message: String, time: String) {
         // Coach → left (grey box), Student → right (brand-brown box)
         val isStudent = role.equals("STUDENT", ignoreCase = true)
-        val bubbleBg  = if (isStudent) Color.parseColor("#D4AF37") else Color.parseColor("#E5E7EB")
-        val bubbleFg  = if (isStudent) Color.WHITE else Color.parseColor("#1F2937")
         val gravity   = if (isStudent) Gravity.END else Gravity.START
 
         val container = LinearLayout(this).apply {
@@ -299,7 +297,7 @@ class LessonReviewActivity : AppCompatActivity() {
         container.addView(TextView(this).apply {
             text = if (time.isNotBlank()) "$name • $time" else name
             textSize = 10f
-            setTextColor(Color.parseColor("#A0AEC0"))
+            setTextColor(Color.parseColor("#8F8174"))
             this.gravity = gravity
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -311,9 +309,12 @@ class LessonReviewActivity : AppCompatActivity() {
         container.addView(TextView(this).apply {
             text = message
             textSize = 14f
-            setPadding(24, 16, 24, 16)
-            setTextColor(bubbleFg)
-            setBackgroundColor(bubbleBg)
+            setPadding(28, 18, 28, 18)
+            maxWidth = (resources.displayMetrics.widthPixels * 0.68f).toInt()
+            setTextColor(if (isStudent) Color.WHITE else Color.parseColor("#2B2B2B"))
+            setBackgroundResource(
+                if (isStudent) R.drawable.bg_chat_bubble_outgoing else R.drawable.bg_chat_bubble_incoming
+            )
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT

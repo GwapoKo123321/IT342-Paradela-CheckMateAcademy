@@ -84,8 +84,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E7DCCF"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -144,8 +146,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E7DCCF"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -166,8 +170,7 @@
                     <ScrollView
                         android:layout_width="match_parent"
                         android:layout_height="120dp"
-                        android:background="@drawable/bg_pill_input"
-                        android:backgroundTint="@color/secondary_bg"
+                        android:background="@drawable/bg_live_surface"
                         android:padding="12dp"
                         android:layout_marginBottom="12dp">
                         <TextView
@@ -176,6 +179,7 @@
                             android:layout_height="wrap_content"
                             android:text="1. d4 d5\n2. Nf3 Nf6\n3. Nc3 Nc6..."
                             android:textColor="@color/text_dark"
+                            android:textSize="14sp"
                             android:lineSpacingExtra="4dp" />
                     </ScrollView>
 
@@ -208,9 +212,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="350dp"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/primary_brand"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E7DCCF"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -224,7 +230,7 @@
                         android:layout_marginBottom="12dp"
                         android:fontFamily="serif"
                         android:text="Live Chat"
-                        android:textColor="@color/white"
+                        android:textColor="@color/primary_brand"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -232,8 +238,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_pill_input"
-                        android:backgroundTint="@color/white"
+                        android:background="@drawable/bg_live_surface"
                         android:padding="12dp"
                         android:layout_marginBottom="12dp">
 
@@ -266,10 +271,9 @@
                             android:layout_width="0dp"
                             android:layout_height="48dp"
                             android:layout_weight="1"
-                            android:background="@drawable/bg_pill_input"
-                            android:backgroundTint="#9CA3AF"
+                            android:background="@drawable/bg_live_input_clean"
                             android:hint="Chat disabled (Session Completed)"
-                            android:textColorHint="#E5E7EB"
+                            android:textColorHint="#8F8174"
                             android:paddingHorizontal="16dp"
                             android:enabled="false"
                             android:layout_marginEnd="8dp"/>
@@ -281,7 +285,7 @@
                             android:text="Send"
                             android:textColor="@color/white"
                             android:enabled="false"
-                            app:cornerRadius="999dp"/>
+                            app:cornerRadius="14dp"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

@@ -9,6 +9,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import edu.cit.paradela.mobile.models.CoachAvailabilitySlot
 import edu.cit.paradela.mobile.models.CoachProfileRequest
 import edu.cit.paradela.mobile.models.UserProfile
 import edu.cit.paradela.mobile.network.RetrofitClient
@@ -26,6 +27,7 @@ class CoachProfileFragment : Fragment() {
     private lateinit var btnSave: Button
 
     private var coachId = ""
+    private var currentAvailability: List<CoachAvailabilitySlot> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,6 +69,7 @@ class CoachProfileFragment : Fragment() {
                         if (profile.currentElo != null)              etElo.setText(profile.currentElo.toString())
                         if (!profile.specialties.isNullOrBlank())    etSpecialties.setText(profile.specialties)
                         if (!profile.bio.isNullOrBlank())            etBio.setText(profile.bio)
+                        currentAvailability = profile.availability
                     }
                 }
             } catch (_: Exception) {
@@ -114,7 +117,7 @@ class CoachProfileFragment : Fragment() {
                 val coachUpdate = CoachProfileRequest(
                     specialties  = specialties,
                     bio          = bio,
-                    availability = emptyList()  // availability managed separately
+                    availability = currentAvailability
                 )
                 val coachResp = RetrofitClient.coachService.updateCoachProfile(coachId, coachUpdate)
 
@@ -127,6 +130,9 @@ class CoachProfileFragment : Fragment() {
 
             withContext(Dispatchers.Main) {
                 if (success) {
+                    requireActivity().intent.putExtra("NAME", name)
+                    requireActivity().intent.putExtra("CHESS_USERNAME", username)
+                    requireActivity().intent.putExtra("CURRENT_ELO", elo)
                     Toast.makeText(requireContext(), "✓ Coach profile saved!", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(requireContext(), "Save failed ($errorCode). Try again.", Toast.LENGTH_SHORT).show()

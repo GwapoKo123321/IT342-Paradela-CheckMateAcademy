@@ -9,12 +9,19 @@
 
     <style>
         body, html {
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             background-color: #F3EEE6;
-            touch-action: none;
+            touch-action: manipulation;
             overflow: hidden;
         }
-        #board { width: 100vw; height: 100vw; max-height: 100vh; margin: 0 auto; }
+
+        #board {
+            width: 100vw;
+            height: 100vw;
+            max-height: 100vh;
+            margin: 0 auto;
+        }
 
         .sq-selected { box-shadow: inset 0 0 4px 4px rgba(246,246,105,0.95); }
         .sq-legal    { box-shadow: inset 0 0 4px 4px rgba(0,0,0,0.25); }
@@ -26,21 +33,22 @@
 <div id="board"></div>
 
 <script>
-    /* ── State ────────────────────────────────────────────────────────── */
     var board        = null;
-    var game         = new Chess();   // the FULL game (all moves)
+    var game         = new Chess();
     var isReadOnly   = false;
-    var viewingIndex = -1;            // half-move index being VIEWED (-1 = start)
+    var viewingIndex = -1;
 
-    // Tap-to-move state
     var selectedSquare = null;
+    var lastTapMs      = 0;
+    var lastTapSquare  = null;
 
-    // Flag: eat the synthetic click that fires right after a drag-drop
-    var justDropped = false;
-
-    /* ── Highlight helpers ────────────────────────────────────────────── */
     function clearHighlights() {
         $('#board .square-55d63').removeClass('sq-selected sq-legal sq-lastmove');
+        selectedSquare = null;
+    }
+
+    function clearSelectionHighlights() {
+        $('#board .square-55d63').removeClass('sq-selected sq-legal');
         selectedSquare = null;
     }
 
@@ -58,34 +66,48 @@
     }
 
     function showLastMove(from, to) {
+        $('#board .square-55d63').removeClass('sq-lastmove');
         if (from) addHighlight(from, 'sq-lastmove');
         if (to)   addHighlight(to,   'sq-lastmove');
     }
 
-    /* ── Are we viewing the live (latest) position? ───────────────────── */
     function isAtLatest() {
         var len = game.history().length;
         return len === 0 ? (viewingIndex === -1) : (viewingIndex === len - 1);
     }
 
-    /* ── TAP-TO-MOVE ─────────────────────────────────────────────────── */
-    $(document).on('click', '.square-55d63', function () {
-        if (justDropped)   { justDropped = false; return; }
+    function isDuplicateTap(square) {
+        var now = Date.now();
+        var duplicate = lastTapSquare === square && (now - lastTapMs) < 350;
+        lastTapMs = now;
+        lastTapSquare = square;
+        return duplicate;
+    }
+
+    function selectSquare(square) {
+        clearSelectionHighlights();
+        selectedSquare = square;
+        addHighlight(square, 'sq-selected');
+        showLegalDots(square);
+    }
+
+    function handleSquareTap(square) {
         if (isReadOnly)    return;
         if (!isAtLatest()) return;
-
-        var square = $(this).attr('data-square');
-        if (!square) return;
+        if (game.game_over()) return;
+        if (!square)       return;
 
         var piece = game.get(square);
 
         if (selectedSquare === null) {
             if (piece && piece.color === game.turn()) {
-                clearHighlights();
-                selectedSquare = square;
-                addHighlight(square, 'sq-selected');
-                showLegalDots(square);
+                selectSquare(square);
             }
+            return;
+        }
+
+        if (selectedSquare === square) {
+            clearSelectionHighlights();
             return;
         }
 
@@ -94,54 +116,31 @@
         catch(e) { move = null; }
 
         if (move === null) {
-            clearHighlights();
             if (piece && piece.color === game.turn()) {
-                selectedSquare = square;
-                addHighlight(square, 'sq-selected');
-                showLegalDots(square);
+                selectSquare(square);
+            } else {
+                clearSelectionHighlights();
             }
-        } else {
-            viewingIndex = game.history().length - 1;
-            clearHighlights();
-            board.position(game.fen(), false);
-            showLastMove(move.from, move.to);
-            notifyAndroid(move);
+            return;
         }
-    });
-
-    /* ── DRAG-AND-DROP ───────────────────────────────────────────────── */
-    function onDragStart(source, piece) {
-        if (isReadOnly)    return false;
-        if (!isAtLatest()) return false;
-        if (game.game_over()) return false;
-        if (game.turn() === 'w' && piece.search(/^b/) !== -1) return false;
-        if (game.turn() === 'b' && piece.search(/^w/) !== -1) return false;
-        clearHighlights();
-        selectedSquare = null;
-        return true;
-    }
-
-    function onDrop(source, target) {
-        var move = null;
-        try { move = game.move({ from: source, to: target, promotion: 'q' }); }
-        catch(e) { return 'snapback'; }
-
-        if (move === null) return 'snapback';
-
-        justDropped = true;
-        setTimeout(function () { justDropped = false; }, 600);
 
         viewingIndex = game.history().length - 1;
+        clearSelectionHighlights();
+        board.position(game.fen(), false);
         showLastMove(move.from, move.to);
         notifyAndroid(move);
-        // return undefined → board accepts the drop
     }
 
-    function onSnapEnd() {
-        board.position(game.fen(), false);
-    }
+    $(document).on('pointerup click', '.square-55d63', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
 
-    /* ── Notify Kotlin of a move ─────────────────────────────────────── */
+        var square = $(this).attr('data-square');
+        if (isDuplicateTap(square)) return;
+
+        handleSquareTap(square);
+    });
+
     function notifyAndroid(move) {
         try {
             var fen  = game.fen();
@@ -154,40 +153,23 @@
         } catch(e) {}
     }
 
-    /* ── Strip PGN headers and result tokens ─────────────────────────── */
     function stripPgn(raw) {
         if (!raw || !raw.trim()) return '';
         return raw
-            .replace(/\[[^\]]*\]\s*/g, '')                    // [Tag "Val"]
-            .replace(/\s*(1-0|0-1|1\/2-1\/2|\*)\s*$/, '')    // trailing result
+            .replace(/\[[^\]]*\]\s*/g, '')
+            .replace(/\s*(1-0|0-1|1\/2-1\/2|\*)\s*$/, '')
             .trim();
     }
 
-    /* ── Board initialisation ────────────────────────────────────────── */
     setTimeout(function () {
         board = Chessboard('board', {
-            draggable:   true,
-            position:    'start',
-            pieceTheme:  'img/chesspieces/wikipedia/{piece}.png',
-            onDragStart: onDragStart,
-            onDrop:      onDrop,
-            onSnapEnd:   onSnapEnd
+            draggable:  false,
+            position:   'start',
+            pieceTheme: 'img/chesspieces/wikipedia/{piece}.png'
         });
         $(window).resize(board.resize);
     }, 300);
 
-    /* ══════════════════════════════════════════════════════════════════
-       KOTLIN-CALLABLE API
-       All called via evaluateJavascript() on the main thread.
-       ══════════════════════════════════════════════════════════════════ */
-
-    /**
-     * loadFromPgn(pgnText)
-     *
-     * Loads a full game from PGN (handles both chess.js 0.10.x and 1.4.x
-     * output). After loading, always jumps the board to the LATEST position
-     * and syncs viewingIndex.
-     */
     function loadFromPgn(pgnText) {
         if (!pgnText || !pgnText.trim()) return;
         if (!board) { setTimeout(function(){ loadFromPgn(pgnText); }, 200); return; }
@@ -205,17 +187,12 @@
                 game = tempGame;
             }
 
-            // Always jump to latest after loading from server
             viewingIndex = game.history().length - 1;
             board.position(game.fen(), false);
             clearHighlights();
         } catch(e) {}
     }
 
-    /**
-     * updateBoardFromFen(fen)
-     * Used as fallback when only FEN is available (no move history).
-     */
     function updateBoardFromFen(fen) {
         if (!fen || !fen.trim()) return;
         if (!board) { setTimeout(function(){ updateBoardFromFen(fen); }, 200); return; }
@@ -227,11 +204,6 @@
         } catch(e) {}
     }
 
-    /**
-     * goToMove(index)
-     * Replays game up to half-move [index] for review. -1 = start position.
-     * Does NOT modify game (the full-history object stays intact).
-     */
     function goToMove(index) {
         if (!board) return;
         try {
@@ -260,13 +232,16 @@
         } catch(e) {}
     }
 
-    /** Flip board orientation */
-    function flipBoard() { if (board) board.flip(); }
+    function flipBoard() {
+        if (board) board.flip();
+        clearSelectionHighlights();
+    }
 
-    /** Lock the board (session COMPLETED) */
-    function setReadOnly() { isReadOnly = true; }
+    function setReadOnly() {
+        isReadOnly = true;
+        clearSelectionHighlights();
+    }
 
-    /** Reset to starting position */
     function resetBoard() {
         game = new Chess();
         viewingIndex = -1;

@@ -526,7 +526,7 @@ class LiveSessionActivity : AppCompatActivity() {
         val header = TextView(this).apply {
             text = if (isSystem) "System" else "$senderName • $time"
             textSize = 10f
-            setTextColor(Color.parseColor("#A0AEC0"))
+            setTextColor(Color.parseColor("#8F8174"))
             gravity = if (isMe) Gravity.END else Gravity.START
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -535,23 +535,24 @@ class LiveSessionActivity : AppCompatActivity() {
         }
         val bubble = TextView(this).apply {
             text = message
-            setPadding(32, 20, 32, 20)
-            setTextColor(if (isMe) Color.WHITE else Color.parseColor("#1F2937"))
-            setBackgroundResource(R.drawable.bg_pill_input)
-            backgroundTintList = android.content.res.ColorStateList.valueOf(
+            textSize = 14f
+            setPadding(28, 18, 28, 18)
+            maxWidth = (resources.displayMetrics.widthPixels * 0.68f).toInt()
+            setTextColor(if (isMe) Color.WHITE else Color.parseColor("#2B2B2B"))
+            setBackgroundResource(
                 when {
-                    isSystem -> Color.TRANSPARENT
-                    isMe     -> Color.parseColor("#D18B47")
-                    else     -> Color.parseColor("#F3F4F6")
+                    isSystem -> R.drawable.bg_chat_bubble_system
+                    isMe     -> R.drawable.bg_chat_bubble_outgoing
+                    else     -> R.drawable.bg_chat_bubble_incoming
                 }
             )
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                gravity      = if (isMe) Gravity.END else Gravity.START
+                gravity      = if (isSystem) Gravity.CENTER_HORIZONTAL else if (isMe) Gravity.END else Gravity.START
                 topMargin    = 4
-                bottomMargin = 20
+                bottomMargin = 16
             }
         }
         chatContainer.addView(header)

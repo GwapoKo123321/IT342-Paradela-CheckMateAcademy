@@ -20,7 +20,13 @@ data class AuthResponse(
     val message: String,
     val token: String?,   // format: "session-{userId}"
     val role: String?,    // "STUDENT" or "Coach"
-    val userId: String?
+    val userId: String?,
+    val data: AuthData? = null
+)
+
+data class AuthData(
+    val user: UserProfile? = null,
+    val accessToken: String? = null
 )
 
 // --- LESSON MODELS ---
@@ -57,7 +63,8 @@ data class CoachModel(
     val chessUsername: String?,
     val specialties: String?,
     val bio: String?,
-    val eloVerified: Boolean?
+    val eloVerified: Boolean?,
+    val availability: List<CoachAvailabilitySlot> = emptyList()
 )
 
 // Available coach time slot — matches backend CoachAvailableSlotResponse

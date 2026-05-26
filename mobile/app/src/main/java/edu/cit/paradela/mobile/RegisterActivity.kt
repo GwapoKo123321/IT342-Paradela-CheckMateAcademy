@@ -90,7 +90,7 @@ class RegisterActivity : AppCompatActivity() {
             var eloRating: Int? = null
             var chessHandle: String? = null
 
-            if (selectedRole == "COACH") {
+            if (selectedRole == "Coach") {
                 val eloString = etRegElo.text.toString().trim()
                 if (eloString.isNotEmpty()) {
                     eloRating = eloString.toIntOrNull()
@@ -137,6 +137,9 @@ class RegisterActivity : AppCompatActivity() {
 
                                 intent.putExtra("USER_ID", authResponse.userId)
                                 intent.putExtra("TOKEN", authResponse.token)
+                                intent.putExtra("NAME", fullName)
+                                intent.putExtra("CHESS_USERNAME", chessHandle)
+                                intent.putExtra("CURRENT_ELO", eloRating ?: 0)
 
                                 // Clear the back stack
                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

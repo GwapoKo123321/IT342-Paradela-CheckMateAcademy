@@ -77,6 +77,11 @@ class LoginActivity : AppCompatActivity() {
 
                                 intent.putExtra("USER_ID", authResponse.userId)
                                 intent.putExtra("TOKEN", authResponse.token)
+                                authResponse.data?.user?.let { user ->
+                                    intent.putExtra("NAME", user.fullName)
+                                    intent.putExtra("CHESS_USERNAME", user.chessUsername)
+                                    intent.putExtra("CURRENT_ELO", user.currentElo ?: 0)
+                                }
 
                                 startActivity(intent)
                                 finish()

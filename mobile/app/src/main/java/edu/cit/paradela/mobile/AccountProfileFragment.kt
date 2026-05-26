@@ -40,9 +40,14 @@ class AccountProfileFragment : Fragment() {
         // Get the user ID passed in from LoginActivity
         userId = requireActivity().intent.getStringExtra("USER_ID") ?: ""
 
-        // Pre-fill name from the login intent if available
+        // Pre-fill profile fields from the login/register intent when available.
         val savedName = requireActivity().intent.getStringExtra("NAME")
         if (!savedName.isNullOrBlank()) etFullName.setText(savedName)
+        requireActivity().intent.getStringExtra("CHESS_USERNAME")
+            ?.takeIf { it.isNotBlank() }
+            ?.let { etChessUsername.setText(it) }
+        val savedElo = requireActivity().intent.getIntExtra("CURRENT_ELO", -1)
+        if (savedElo >= 0) etElo.setText(savedElo.toString())
 
         btnSave.setOnClickListener { saveProfile() }
     }
@@ -77,6 +82,9 @@ class AccountProfileFragment : Fragment() {
 
                 withContext(Dispatchers.Main) {
                     if (resp.isSuccessful && resp.body() != null) {
+                        requireActivity().intent.putExtra("NAME", name)
+                        requireActivity().intent.putExtra("CHESS_USERNAME", username)
+                        requireActivity().intent.putExtra("CURRENT_ELO", elo)
                         Toast.makeText(requireContext(), "✓ Profile saved successfully!", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(requireContext(), "Save failed (${resp.code()}). Try again.", Toast.LENGTH_SHORT).show()

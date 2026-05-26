@@ -68,8 +68,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E7DCCF"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -151,8 +153,7 @@
                     <ScrollView
                         android:layout_width="match_parent"
                         android:layout_height="120dp"
-                        android:background="@drawable/bg_pill_input"
-                        android:backgroundTint="@color/secondary_bg"
+                        android:background="@drawable/bg_live_surface"
                         android:padding="12dp"
                         android:layout_marginBottom="12dp">
                         <TextView
@@ -161,6 +162,7 @@
                             android:layout_height="wrap_content"
                             android:text="No moves yet."
                             android:textColor="@color/text_dark"
+                            android:textSize="14sp"
                             android:lineSpacingExtra="4dp" />
                     </ScrollView>
 
@@ -194,9 +196,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="350dp"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/primary_brand"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E7DCCF"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -210,7 +214,7 @@
                         android:layout_marginBottom="12dp"
                         android:fontFamily="serif"
                         android:text="Live Chat"
-                        android:textColor="@color/white"
+                        android:textColor="@color/primary_brand"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -219,8 +223,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_pill_input"
-                        android:backgroundTint="@color/white"
+                        android:background="@drawable/bg_live_surface"
                         android:padding="12dp"
                         android:layout_marginBottom="12dp">
 
@@ -242,21 +245,22 @@
                             android:layout_width="0dp"
                             android:layout_height="48dp"
                             android:layout_weight="1"
-                            android:background="@drawable/bg_pill_input"
-                            android:backgroundTint="@color/white"
+                            android:background="@drawable/bg_live_input_clean"
                             android:hint="Type a message..."
                             android:paddingHorizontal="16dp"
                             android:textColor="@color/text_dark"
+                            android:textColorHint="#9A8A7B"
                             android:layout_marginEnd="8dp"/>
 
                         <Button
                             android:id="@+id/btnSendChat"
                             android:layout_width="wrap_content"
                             android:layout_height="48dp"
-                            android:backgroundTint="@color/accent_gold"
+                            android:backgroundTint="@color/primary_brand"
                             android:text="Send"
                             android:textColor="@color/white"
-                            app:cornerRadius="999dp"/>
+                            android:textStyle="bold"
+                            app:cornerRadius="14dp"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
