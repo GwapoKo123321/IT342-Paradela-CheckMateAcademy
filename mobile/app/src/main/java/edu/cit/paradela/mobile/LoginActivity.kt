@@ -69,7 +69,7 @@ class LoginActivity : AppCompatActivity() {
                             if (authResponse.success) {
                                 Toast.makeText(this@LoginActivity, "Welcome back!", Toast.LENGTH_SHORT).show()
 
-                                val intent = if (authResponse.role == "COACH") {
+                                val intent = if (authResponse.role == "Coach") {
                                     Intent(this@LoginActivity, CoachDashboardActivity::class.java)
                                 } else {
                                     Intent(this@LoginActivity, StudentDashboardActivity::class.java)

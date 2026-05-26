@@ -65,7 +65,8 @@ const updateBoardState = async (lessonId, fen, pgn) => {
     return response.data;
 };
 
-export default {
+const bookingService = {
     bookLesson, getCoachLessons, getStudentLessons, updateLessonStatus,
     getCoaches, getAvailableSlots, getCoachProfile, saveCoachProfile, getLessonById, saveLessonNotes, updateBoardState
 };
+export default bookingService;

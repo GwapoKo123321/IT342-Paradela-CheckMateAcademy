@@ -25,4 +25,5 @@ const toggleEloVerification = async (userId) => {
     return response.data;
 };
 
-export default { getAllUsers, updateUserRole, deleteUser, toggleUserFlag, toggleEloVerification };
+const adminService = { getAllUsers, updateUserRole, deleteUser, toggleUserFlag, toggleEloVerification };
+export default adminService;

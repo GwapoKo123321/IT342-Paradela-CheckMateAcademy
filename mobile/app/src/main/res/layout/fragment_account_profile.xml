@@ -46,13 +46,14 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etProfileFullName"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="20dp"
                     android:background="@drawable/bg_pill_input"
                     android:backgroundTint="@color/secondary_bg"
                     android:paddingHorizontal="16dp"
-                    android:text="Hikaru Nakamura"
+                    android:hint="Your full name"
                     android:textColor="@color/text_dark" />
 
                 <TextView
@@ -65,6 +66,7 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etProfileChessUsername"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="20dp"
@@ -84,6 +86,7 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etProfileElo"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="32dp"
@@ -91,10 +94,11 @@
                     android:backgroundTint="@color/secondary_bg"
                     android:inputType="number"
                     android:paddingHorizontal="16dp"
-                    android:text="0"
+                    android:hint="0"
                     android:textColor="@color/text_dark" />
 
                 <Button
+                    android:id="@+id/btnSaveProfile"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:backgroundTint="@color/primary_brand"

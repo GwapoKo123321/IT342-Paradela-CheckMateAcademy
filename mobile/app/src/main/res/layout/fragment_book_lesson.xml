@@ -46,6 +46,7 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etBookingDate"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="20dp"
@@ -53,7 +54,9 @@
                     android:backgroundTint="@color/secondary_bg"
                     android:drawableEnd="@android:drawable/ic_menu_my_calendar"
                     android:drawableTint="@color/primary_brand"
-                    android:hint="06/01/2026"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:hint="Select a Date"
                     android:paddingHorizontal="16dp"
                     android:textColor="@color/text_dark" />
 
@@ -67,6 +70,7 @@
                     android:textStyle="bold" />
 
                 <Spinner
+                    android:id="@+id/spnPlaystyle"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="24dp"
@@ -82,61 +86,19 @@
                     android:textColor="@color/primary_brand"
                     android:textStyle="bold" />
 
-                <com.google.android.material.card.MaterialCardView
+                <LinearLayout
+                    android:id="@+id/llAvailableTimesContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="12dp"
-                    app:strokeColor="@color/primary_brand"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Magnus Carlsen"
-                                android:textColor="@color/text_dark"
-                                android:textStyle="bold" />
-
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="10:00 AM - 11:00 AM"
-                                android:textColor="@color/text_dark"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Endgames and Norwegian Openings"
-                            android:textColor="#5A5045"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    android:orientation="vertical"
+                    android:layout_marginBottom="24dp" />
 
                 <Button
                     android:id="@+id/btnConfirmBooking"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:backgroundTint="#BDBDBD"
+                    android:enabled="false"
                     android:fontFamily="serif"
                     android:text="Confirm Booking"
                     android:textColor="@color/white"

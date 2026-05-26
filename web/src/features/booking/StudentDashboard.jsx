@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import bookingService from './bookingService';
 import authService from '../auth/authService';
+import { useToast } from './useNotifications';
 import './StudentDashboard.css';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -45,8 +46,54 @@ const formatBookingDate = (value) => new Date(`${value}T00:00:00`).toLocaleDateS
   day: 'numeric'
 });
 
+/**
+ * True when the given slot's start time is still in the future relative to `now`.
+ *
+ * WHY this approach:
+ * The backend may return startTime as "2026-05-26T10:00:00" (no timezone suffix).
+ * Browsers differ on whether they treat that as local or UTC, which breaks a simple
+ * `new Date(slot.startTime) > new Date()` comparison.
+ *
+ * Instead we explictly build a local Date from the selected bookingDate + the time
+ * part of startTime, so it is always unambiguously in the local timezone.
+ */
+const isSlotFuture = (slot, bookingDate, now) => {
+  try {
+    // Extract HH:MM from whatever format the server returned (ISO or "HH:MM:SS" etc.)
+    const rawTime = slot.startTime || '';
+    const timePart = rawTime.includes('T')
+      ? rawTime.split('T')[1].slice(0, 5)   // "2026-05-26T10:00:00" → "10:00"
+      : rawTime.slice(0, 5);                 // "10:00:00" → "10:00"
+    // Build an unambiguous local-time Date using the date the student chose
+    const slotDate = new Date(`${bookingDate}T${timePart}:00`);
+    return slotDate > now;
+  } catch {
+    return true; // fail open so valid slots are never accidentally hidden
+  }
+};
+
+/**
+ * True when the current time is within the join window:
+ * 10 minutes before lesson start or any time after start.
+ */
+const canJoinLesson = (startTime) => {
+  const windowOpen = new Date(new Date(startTime).getTime() - 10 * 60 * 1000);
+  return new Date() >= windowOpen;
+};
+
+/** Human-readable label shown on the disabled Join button before the window opens. */
+const joinCountdownLabel = (startTime) => {
+  const minsUntil = Math.ceil((new Date(startTime) - new Date()) / 60_000);
+  if (minsUntil <= 10) return 'Join Lesson';
+  const hrs = Math.floor(minsUntil / 60);
+  const mins = minsUntil % 60;
+  if (hrs > 0) return `Opens in ${hrs}h ${mins}m`;
+  return `Opens in ${minsUntil} min`;
+};
+
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const { toast, ToastContainer } = useToast();
   const [user, setUser] = useState(() => JSON.parse(sessionStorage.getItem('user') || '{}'));
   const activeViewStorageKey = `student-dashboard-view-${user.id || 'guest'}`;
 
@@ -55,13 +102,24 @@ const StudentDashboard = () => {
     return STUDENT_VIEWS.includes(savedView) ? savedView : 'schedule';
   });
 
-  const [availableSlots, setAvailableSlots] = useState([]);
+  const [rawSlots, setRawSlots] = useState([]);      // all slots returned by the server
   const [myLessons, setMyLessons] = useState([]);
+
+  // Tick every 60 s so the slot list re-filters automatically as time passes
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(tick);
+  }, []);
 
   const [selectedSlotKey, setSelectedSlotKey] = useState('');
   const [bookingDate, setBookingDate] = useState('');
   const [preferredStyle, setPreferredStyle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Derived: only the slots that haven't started yet (recalculated every render)
+  const availableSlots = rawSlots.filter(s => isSlotFuture(s, bookingDate, now));
+
 
   // Profile Edit State
   const [profileForm, setProfileForm] = useState({ fullName: user.fullName || '', chessUsername: user.chessUsername || '', currentElo: user.currentElo || 0 });
@@ -79,44 +137,53 @@ const StudentDashboard = () => {
     sessionStorage.setItem(activeViewStorageKey, activeView);
   }, [activeView, activeViewStorageKey]);
 
+  // ── Booking slots fetch — filters out past slots client-side ────────────────
   useEffect(() => {
-    if (activeView === 'booking') {
-      if (!bookingDate) {
-        setAvailableSlots([]);
-        setSelectedSlotKey('');
-        return;
+    if (activeView !== 'booking') return;
+    if (!bookingDate) { setRawSlots([]); setSelectedSlotKey(''); return; }
+
+    const fetchAvailableSlots = async () => {
+      try {
+        const filters = { date: bookingDate, studentId: user.id };
+        if (preferredStyle) filters.style = preferredStyle;
+        const slots = await bookingService.getAvailableSlots(filters);
+        // Store ALL slots raw — the live `availableSlots` derived value
+        // filters out past ones on every render so stale results are impossible.
+        setRawSlots(slots);
+      } catch (error) {
+        console.error('Failed to fetch available slots');
+        setRawSlots([]);
       }
-
-      const fetchAvailableSlots = async () => {
-        try {
-          const filters = { date: bookingDate, studentId: user.id };
-          if (preferredStyle) filters.style = preferredStyle;
-
-          const slots = await bookingService.getAvailableSlots(filters);
-          setAvailableSlots(slots);
-          setSelectedSlotKey(prev => (
-            prev && !slots.some(slot => getSlotKey(slot) === prev) ? '' : prev
-          ));
-        } catch (error) {
-          console.error("Failed to fetch available slots");
-          setAvailableSlots([]);
-          setSelectedSlotKey('');
-        }
-      };
-
-      fetchAvailableSlots();
-    } else if (activeView === 'schedule' || activeView === 'reviews') {
-      const fetchLessons = async () => {
-        try {
-          const lessons = await bookingService.getStudentLessons(user.id);
-          setMyLessons(lessons);
-        } catch (error) {
-          console.error("Failed to fetch schedule");
-        }
-      };
-      fetchLessons();
-    }
+    };
+    fetchAvailableSlots();
   }, [activeView, user.id, bookingDate, preferredStyle]);
+
+  // Keep selectedSlotKey in sync: clear it if its slot is no longer in the visible list
+  useEffect(() => {
+    if (selectedSlotKey && !availableSlots.some(s => getSlotKey(s) === selectedSlotKey)) {
+      setSelectedSlotKey('');
+    }
+  }, [availableSlots, selectedSlotKey]);
+
+  // ── Schedule / reviews — fetch immediately then poll every 10 s ───────────
+  // This ensures status changes made by the coach (accept/reject) appear
+  // automatically without the student having to navigate away and back.
+  useEffect(() => {
+    if (activeView !== 'schedule' && activeView !== 'reviews') return;
+
+    const fetchLessons = async () => {
+      try {
+        const lessons = await bookingService.getStudentLessons(user.id);
+        setMyLessons(lessons);
+      } catch (error) {
+        console.error('Failed to fetch schedule');
+      }
+    };
+
+    fetchLessons();                                      // immediate fetch on mount/tab switch
+    const interval = setInterval(fetchLessons, 10_000); // then every 10 seconds
+    return () => clearInterval(interval);               // clean up when leaving the tab
+  }, [activeView, user.id]);
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -131,9 +198,9 @@ const StudentDashboard = () => {
       updatedUser.role = user.role;
       sessionStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
-      alert("Profile updated successfully!");
+      toast('Profile updated successfully!', 'success');
     } catch (error) {
-      alert("Failed to update profile changes.");
+      toast('Failed to update profile changes.', 'error');
     } finally {
       setIsSavingProfile(false);
     }
@@ -144,7 +211,7 @@ const StudentDashboard = () => {
     const selectedSlot = availableSlots.find(slot => getSlotKey(slot) === selectedSlotKey);
     if (!selectedSlot) return;
     if (selectedSlot.studentConflict) {
-      alert("This time conflicts with another lesson already on your schedule.");
+      toast('This time conflicts with another lesson already on your schedule.', 'warning');
       return;
     }
 
@@ -162,13 +229,13 @@ const StudentDashboard = () => {
 
     try {
       await bookingService.bookLesson(bookingData);
-      alert(`Success! Your lesson with ${selectedSlot.coachName} has been requested.`);
+      toast(`Success! Your lesson with ${selectedSlot.coachName} has been requested.`, 'success');
       setSelectedSlotKey('');
       setBookingDate('');
       setPreferredStyle('');
       setActiveView('schedule');
     } catch (error) {
-      alert(error.message);
+      toast(error.message || 'Failed to submit booking.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -406,7 +473,13 @@ const StudentDashboard = () => {
                         <td style={{ fontWeight: 'bold' }}>{lesson.coachName}</td>
                         <td>{new Date(lesson.startTime).toLocaleString()}</td>
                         <td><span className={`status-badge status-${lesson.status}`}>{lesson.status}</span></td>
-                        <td>{lesson.status === 'ACCEPTED' && ( <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="student-action-btn font-serif">Join Lesson</button>)}</td>
+                        <td>
+                          {lesson.status === 'ACCEPTED' && (
+                            canJoinLesson(lesson.startTime)
+                              ? <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="student-action-btn font-serif">Join Lesson</button>
+                              : <button disabled className="student-action-btn font-serif" style={{ opacity: 0.45, cursor: 'not-allowed', background: '#9e9e9e' }} title="Available 10 minutes before the lesson starts">{joinCountdownLabel(lesson.startTime)}</button>
+                          )}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -441,6 +514,7 @@ const StudentDashboard = () => {
           </>
         )}
       </main>
+      <ToastContainer />
     </div>
   );
 };

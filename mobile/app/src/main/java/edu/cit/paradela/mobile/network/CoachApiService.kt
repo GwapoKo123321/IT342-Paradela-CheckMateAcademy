@@ -2,32 +2,36 @@ package edu.cit.paradela.mobile.network
 
 import edu.cit.paradela.mobile.models.*
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
+import retrofit2.http.*
 
 interface CoachApiService {
 
-    // 1. Coach Schedule & Requests
-    @GET("api/coach/schedule")
-    suspend fun getCoachSchedule(): Response<List<LessonModel>>
+    // 1. Coach Schedule — get all lessons for this coach
+    @GET("api/lessons/coach/{coachId}")
+    suspend fun getCoachLessons(@Path("coachId") coachId: String): Response<List<LessonModel>>
 
-    @POST("api/coach/lesson/{lessonId}/accept")
-    suspend fun acceptLesson(@Path("lessonId") lessonId: String): Response<BaseResponse>
+    // 2. Accept or Reject a lesson (pass status = "ACCEPTED" or "REJECTED")
+    @PUT("api/lessons/{lessonId}/status")
+    suspend fun updateLessonStatus(
+        @Path("lessonId") lessonId: String,
+        @Query("status") status: String
+    ): Response<LessonModel>
 
-    @POST("api/coach/lesson/{lessonId}/reject")
-    suspend fun rejectLesson(@Path("lessonId") lessonId: String): Response<BaseResponse>
+    // 3. Get coach profile
+    @GET("api/users/coaches/{coachId}/profile")
+    suspend fun getCoachProfile(@Path("coachId") coachId: String): Response<CoachModel>
 
-    // 2. Lesson Reviews
-    @GET("api/coach/reviews")
-    suspend fun getCoachReviews(): Response<List<ReviewModel>>
+    // 4. Update coach profile
+    @PUT("api/users/coaches/{coachId}/profile")
+    suspend fun updateCoachProfile(
+        @Path("coachId") coachId: String,
+        @Body update: CoachProfileRequest
+    ): Response<CoachModel>
 
-    // 3. Profile Management
-    @GET("api/coach/profile")
-    suspend fun getCoachProfile(): Response<CoachProfile>
-
-    @PUT("api/coach/profile")
-    suspend fun updateCoachProfile(@Body update: CoachProfile): Response<BaseResponse>
+    // 5. Update general user profile (name, elo, chessUsername)
+    @PUT("api/users/profile/update/{userId}")
+    suspend fun updateUserProfile(
+        @Path("userId") userId: String,
+        @Body update: UserProfile
+    ): Response<UserProfile>
 }

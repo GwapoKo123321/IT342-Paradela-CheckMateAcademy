@@ -2,32 +2,33 @@ package edu.cit.paradela.mobile.network
 
 import edu.cit.paradela.mobile.models.*
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
+import retrofit2.http.*
 
 interface StudentApiService {
 
-    // 1. My Schedule
-    @GET("api/student/schedule/upcoming")
-    suspend fun getUpcomingLessons(): Response<List<LessonModel>>
+    // 1. My Schedule — get all lessons for this student
+    @GET("api/lessons/student/{studentId}")
+    suspend fun getStudentLessons(@Path("studentId") studentId: String): Response<List<LessonModel>>
 
-    // 2. Lesson Reviews
-    @GET("api/student/reviews/past")
-    suspend fun getPastReviews(): Response<List<ReviewModel>>
+    // 2. Available coach slots by date (for booking)
+    @GET("api/users/coaches/available-slots")
+    suspend fun getAvailableSlots(
+        @Query("date") date: String,        // format: YYYY-MM-DD
+        @Query("studentId") studentId: String
+    ): Response<List<CoachAvailableSlot>>
 
-    // 3. Book a Lesson
-    @GET("api/coaches/available")
-    suspend fun getAvailableCoaches(): Response<List<CoachModel>>
+    // 3. Book a lesson
+    @POST("api/lessons")
+    suspend fun bookLesson(@Body request: BookingRequest): Response<LessonModel>
 
-    @POST("api/student/book")
-    suspend fun bookLesson(@Body request: BookingRequest): Response<BaseResponse>
+    // 4. Get user profile
+    @GET("api/users/coaches/{userId}/profile")
+    suspend fun getCoachProfile(@Path("userId") userId: String): Response<CoachModel>
 
-    // 4. Account Profile
-    @GET("api/student/profile")
-    suspend fun getProfile(): Response<StudentProfile>
-
-    @PUT("api/student/profile")
-    suspend fun updateProfile(@Body update: StudentProfile): Response<BaseResponse>
+    // 5. Update user profile
+    @PUT("api/users/profile/update/{userId}")
+    suspend fun updateProfile(
+        @Path("userId") userId: String,
+        @Body update: UserProfile
+    ): Response<UserProfile>
 }

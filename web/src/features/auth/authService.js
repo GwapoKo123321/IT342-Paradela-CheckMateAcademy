@@ -3,7 +3,6 @@ import apiClient from '../core/apiClient';
 const loginUser = async (credentials) => {
     const response = await apiClient.post('/auth/login', credentials);
     if (response.data.success) {
-
         sessionStorage.setItem('token', response.data.data.accessToken);
         sessionStorage.setItem('user', JSON.stringify(response.data.data.user));
         return response.data.data;
@@ -20,4 +19,5 @@ const updateProfile = async (userId, profileData) => {
     return response.data;
 };
 
-export default { loginUser, registerUser, updateProfile };
+const authService = { loginUser, registerUser, updateProfile };
+export default authService;

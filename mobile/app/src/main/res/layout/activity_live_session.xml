@@ -159,7 +159,7 @@
                             android:id="@+id/tvMoveHistoryList"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="1. d4 d5\n2. Nf3 Nf6\n3. Nc3 Nc6..."
+                            android:text="No moves yet."
                             android:textColor="@color/text_dark"
                             android:lineSpacingExtra="4dp" />
                     </ScrollView>
@@ -190,6 +190,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/chatCardView"
                 android:layout_width="match_parent"
                 android:layout_height="350dp"
                 android:layout_marginBottom="16dp"
@@ -214,6 +215,7 @@
                         android:textStyle="bold" />
 
                     <ScrollView
+                        android:id="@+id/chatScrollView"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
@@ -223,44 +225,11 @@
                         android:layout_marginBottom="12dp">
 
                         <LinearLayout
+                            android:id="@+id/chatMessagesContainer"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:orientation="vertical" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Magnus Carlsen • 03:12 AM"
-                                android:textSize="10sp"
-                                android:textColor="#A0AEC0"/>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="IntelliJTest"
-                                android:padding="8dp"
-                                android:background="@drawable/bg_pill_input"
-                                android:backgroundTint="@color/secondary_bg"
-                                android:textColor="@color/text_dark"
-                                android:layout_marginBottom="12dp"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Hikaru Nakamura • 03:37 AM"
-                                android:layout_gravity="end"
-                                android:textSize="10sp"
-                                android:textColor="#A0AEC0"/>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Test Again"
-                                android:layout_gravity="end"
-                                android:padding="8dp"
-                                android:background="@drawable/bg_pill_input"
-                                android:backgroundTint="@color/input_bg"
-                                android:textColor="@color/white"
-                                android:layout_marginBottom="12dp"/>
-                        </LinearLayout>
                     </ScrollView>
 
                     <LinearLayout

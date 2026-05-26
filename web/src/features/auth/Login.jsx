@@ -21,7 +21,8 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const data = await authService.loginUser(credentials);
+      // ESLint Fix: Removed 'const data =' since we just need the request to succeed
+      await authService.loginUser(credentials);
       navigate('/dashboard');
     } catch (error) {
       setErrorMsg("Invalid email or password. Please try again.");

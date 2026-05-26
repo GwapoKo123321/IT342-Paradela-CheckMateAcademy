@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
 class RegisterActivity : AppCompatActivity() {
 
     // Keep track of which role they have selected
-    private var selectedRole = "STUDENT"
+    private var selectedRole = "STUDENT" // Backend stores "STUDENT" or "Coach"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +55,7 @@ class RegisterActivity : AppCompatActivity() {
 
         // Handle Student Tab
         btnToggleStudent.setOnClickListener {
-            selectedRole = "STUDENT"
+            selectedRole = "STUDENT" // Must match backend role values
             // Visuals
             btnToggleStudent.backgroundTintList = ColorStateList.valueOf(colorGold)
             btnToggleCoach.backgroundTintList = ColorStateList.valueOf(colorWhite)
@@ -66,7 +66,7 @@ class RegisterActivity : AppCompatActivity() {
 
         // Handle Coach Tab
         btnToggleCoach.setOnClickListener {
-            selectedRole = "COACH"
+            selectedRole = "Coach" // Backend stores "Coach" not "COACH"
             // Visuals
             btnToggleCoach.backgroundTintList = ColorStateList.valueOf(colorGold)
             btnToggleStudent.backgroundTintList = ColorStateList.valueOf(colorWhite)
@@ -115,8 +115,8 @@ class RegisterActivity : AppCompatActivity() {
                         password = password,
                         fullName = fullName,
                         role = selectedRole,
-                        eloRating = eloRating,
-                        chessHandle = chessHandle
+                        currentElo = eloRating,     // backend field name
+                        chessUsername = chessHandle  // backend field name
                     )
 
                     val response = RetrofitClient.authService.registerUser(request)
@@ -129,7 +129,7 @@ class RegisterActivity : AppCompatActivity() {
                                 Toast.makeText(this@RegisterActivity, "Account Created!", Toast.LENGTH_SHORT).show()
 
                                 // Route to correct Dashboard
-                                val intent = if (authResponse.role == "COACH") {
+                                val intent = if (authResponse.role == "Coach") {
                                     Intent(this@RegisterActivity, CoachDashboardActivity::class.java)
                                 } else {
                                     Intent(this@RegisterActivity, StudentDashboardActivity::class.java)

@@ -7,18 +7,14 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-
-    // Point directly to your live production server!
     private const val BASE_URL = "https://it342-paradela-checkmateacademy.onrender.com/"
 
-    // Create a customized OkHttpClient for reliable connections
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
-    // Build the Retrofit instance
     val instance: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -27,7 +23,6 @@ object RetrofitClient {
             .build()
     }
 
-    // Initialize your API Services
     val authService: AuthApiService by lazy {
         instance.create(AuthApiService::class.java)
     }
@@ -38,5 +33,9 @@ object RetrofitClient {
 
     val coachService: CoachApiService by lazy {
         instance.create(CoachApiService::class.java)
+    }
+
+    val liveSessionService: LiveSessionApiService by lazy {
+        instance.create(LiveSessionApiService::class.java)
     }
 }

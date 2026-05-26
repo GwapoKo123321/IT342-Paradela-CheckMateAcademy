@@ -28,7 +28,7 @@ public class AdminService {
         userRepository.deleteById(userId);
     }
 
-    // NEW LOGIC: Toggle Account Flag (Warning for bad comments/behavior)
+
     public User toggleUserFlag(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -36,7 +36,7 @@ public class AdminService {
         return userRepository.save(user);
     }
 
-    // NEW LOGIC: Toggle ELO Verification
+
     public User toggleEloVerification(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

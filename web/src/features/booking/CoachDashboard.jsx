@@ -2,7 +2,23 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bookingService from './bookingService';
 import authService from '../auth/authService';
+import { useToast, useConfirm } from './useNotifications';
 import './CoachDashboard.css';
+
+/** True when now is within 10 min of lesson start (or after start). */
+const canJoinLesson = (startTime) => {
+  const windowOpen = new Date(new Date(startTime).getTime() - 10 * 60 * 1000);
+  return new Date() >= windowOpen;
+};
+
+const joinCountdownLabel = (startTime) => {
+  const minsUntil = Math.ceil((new Date(startTime) - new Date()) / 60_000);
+  if (minsUntil <= 10) return 'Join Lesson';
+  const hrs = Math.floor(minsUntil / 60);
+  const mins = minsUntil % 60;
+  if (hrs > 0) return `Opens in ${hrs}h ${mins}m`;
+  return `Opens in ${minsUntil} min`;
+};
 
 const DAY_OPTIONS = [
   { value: 1, label: 'Monday' },
@@ -68,6 +84,8 @@ const findNextAvailableSlot = (availability) => {
 
 const CoachDashboard = () => {
   const navigate = useNavigate();
+  const { toast, ToastContainer } = useToast();
+  const { confirm, ConfirmModal } = useConfirm();
   const [user, setUser] = useState(() => JSON.parse(sessionStorage.getItem('user') || '{}'));
   const activeViewStorageKey = `coach-dashboard-view-${user.id || 'guest'}`;
   const [lessons, setLessons] = useState([]);
@@ -109,9 +127,15 @@ const CoachDashboard = () => {
     }
   }, [user.id]);
 
+  // Poll every 10 s while on the schedule view so incoming bookings and status
+  // changes from the student side appear automatically without a page refresh.
   useEffect(() => {
-    if (user.id) { loadLessons(); }
-  }, [user.id, loadLessons]);
+    if (!user.id) return;
+    loadLessons();                                        // immediate fetch
+    if (activeView !== 'schedule') return;
+    const interval = setInterval(loadLessons, 10_000);   // poll every 10 s
+    return () => clearInterval(interval);                 // clean up on tab switch
+  }, [user.id, activeView, loadLessons]);
 
   useEffect(() => {
     sessionStorage.setItem(activeViewStorageKey, activeView);
@@ -128,15 +152,25 @@ const CoachDashboard = () => {
 
   const handleAction = async (lessonId, action) => {
     if (action === 'COMPLETED') {
-      const confirmComplete = window.confirm("Are you sure you want to mark this lesson as completed? This will move it to Match Reviews.");
-      if (!confirmComplete) return;
+      const ok = await confirm(
+        'Are you sure you want to mark this lesson as completed? This will move it to Match Reviews.',
+        { title: 'Mark as Completed', danger: true }
+      );
+      if (!ok) return;
     }
+
+    // ── Optimistic update: change the status immediately in local state ──────
+    // The UI reflects the new status before the API even responds.
+    setLessons(prev => prev.map(l => l.id === lessonId ? { ...l, status: action } : l));
+
     try {
       await bookingService.updateLessonStatus(lessonId, action);
-      alert(`Lesson status updated to ${action}.`);
-      loadLessons();
+      toast(`Lesson ${action.toLowerCase()}.`, 'success');
+      loadLessons(); // background sync to confirm server state
     } catch (error) {
-      alert("Failed to update status.");
+      // Revert by reloading true server state on failure
+      loadLessons();
+      toast('Failed to update status. Changes reverted.', 'error');
     }
   };
 
@@ -161,7 +195,7 @@ const CoachDashboard = () => {
     e.preventDefault();
 
     if (hasOverlappingAvailabilitySlots) {
-      alert("Availability slots on the same day cannot overlap.");
+      toast('Availability slots on the same day cannot overlap.', 'warning');
       return;
     }
 
@@ -180,9 +214,9 @@ const CoachDashboard = () => {
         availability: savedProfile.availability || []
       });
 
-      alert("Profile data matrices and schedules saved successfully.");
+      toast('Profile data matrices and schedules saved successfully.', 'success');
     } catch (error) {
-      alert(error.response?.data?.error || "Failed to update profile settings.");
+      toast(error.response?.data?.error || 'Failed to update profile settings.', 'error');
     } finally {
       setIsSavingProfile(false);
     }
@@ -233,7 +267,10 @@ const CoachDashboard = () => {
                           )}
                           {lesson.status === 'ACCEPTED' && (
                             <>
-                              <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="coach-action-btn coach-join font-serif">Join Lesson</button>
+                              {canJoinLesson(lesson.startTime)
+                                ? <button onClick={() => navigate(`/lesson/${lesson.id}`)} className="coach-action-btn coach-join font-serif">Join Lesson</button>
+                                : <button disabled className="coach-action-btn font-serif" style={{ opacity: 0.45, cursor: 'not-allowed', background: '#9e9e9e' }} title="Available 10 minutes before the lesson starts">{joinCountdownLabel(lesson.startTime)}</button>
+                              }
                               <button onClick={() => handleAction(lesson.id, 'COMPLETED')} className="coach-action-btn coach-complete font-serif">Mark Complete</button>
                             </>
                           )}
@@ -344,6 +381,8 @@ const CoachDashboard = () => {
           </>
         )}
       </main>
+      <ToastContainer />
+      <ConfirmModal />
     </div>
   );
 };

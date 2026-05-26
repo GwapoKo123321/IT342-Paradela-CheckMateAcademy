@@ -15,4 +15,5 @@ const resolveReport = async (reportId) => {
     return response.data;
 };
 
-export default { submitReport, getAllReports, resolveReport };
+const reportService = { submitReport, getAllReports, resolveReport };
+export default reportService;

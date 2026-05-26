@@ -37,6 +37,7 @@
                 android:orientation="vertical"
                 android:padding="24dp">
 
+                <!-- Full Name -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -47,15 +48,17 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etCoachFullName"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="16dp"
                     android:background="@drawable/bg_pill_input"
                     android:backgroundTint="@color/secondary_bg"
                     android:paddingHorizontal="16dp"
-                    android:text="Magnus Carlsen"
+                    android:hint="Your full name"
                     android:textColor="@color/text_dark" />
 
+                <!-- Chess Username -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -66,15 +69,17 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etCoachChessUsername"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="16dp"
                     android:background="@drawable/bg_pill_input"
                     android:backgroundTint="@color/secondary_bg"
                     android:paddingHorizontal="16dp"
-                    android:text="DrDrunkenstein"
+                    android:hint="Chess.com or Lichess handle"
                     android:textColor="@color/text_dark" />
 
+                <!-- ELO -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -85,6 +90,7 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etCoachElo"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="8dp"
@@ -92,7 +98,7 @@
                     android:backgroundTint="@color/secondary_bg"
                     android:inputType="number"
                     android:paddingHorizontal="16dp"
-                    android:text="2850"
+                    android:hint="0"
                     android:textColor="@color/text_dark" />
 
                 <TextView
@@ -104,6 +110,7 @@
                     android:textSize="11sp"
                     android:textStyle="italic" />
 
+                <!-- Specialties -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -114,15 +121,17 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etCoachSpecialties"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="16dp"
                     android:background="@drawable/bg_pill_input"
                     android:backgroundTint="@color/secondary_bg"
                     android:paddingHorizontal="16dp"
-                    android:text="Endgames and Norwegian Openings"
+                    android:hint="e.g. Endgames, Openings, Tactics"
                     android:textColor="@color/text_dark" />
 
+                <!-- Bio -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -133,6 +142,7 @@
                     android:textStyle="bold" />
 
                 <EditText
+                    android:id="@+id/etCoachBio"
                     android:layout_width="match_parent"
                     android:layout_height="100dp"
                     android:layout_marginBottom="32dp"
@@ -141,122 +151,21 @@
                     android:gravity="top|start"
                     android:inputType="textMultiLine"
                     android:padding="16dp"
-                    android:text="I am a grandmaster..."
+                    android:hint="Tell students about your coaching style..."
                     android:textColor="@color/text_dark" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="serif"
-                        android:text="Weekly Availability Blocks"
-                        android:textColor="@color/primary_brand"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <Space
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
-
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:backgroundTint="@color/primary_brand"
-                        android:text="+ Add Slot"
-                        android:textColor="@color/white"
-                        android:textSize="10sp"
-                        app:cornerRadius="999dp" />
-                </LinearLayout>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
-                    app:cardBackgroundColor="@color/secondary_bg"
-                    app:cardCornerRadius="12dp"
-                    app:strokeColor="@color/primary_brand"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp">
-
-                            <Spinner
-                                android:layout_width="140dp"
-                                android:layout_height="40dp"
-                                android:background="@drawable/bg_pill_input"
-                                android:backgroundTint="@color/white" />
-
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="REMOVE"
-                                android:textColor="#EF4444"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="40dp"
-                            android:background="@drawable/bg_pill_input"
-                            android:backgroundTint="@color/white"
-                            android:orientation="horizontal"
-                            android:gravity="center">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="09:00 AM"
-                                android:textColor="@color/text_dark"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="  to  "
-                                android:textColor="#5A5045" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="11:00 AM"
-                                android:textColor="@color/text_dark"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
+                <!-- Save Button -->
                 <Button
+                    android:id="@+id/btnSaveCoachProfile"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:backgroundTint="@color/primary_brand"
                     android:fontFamily="serif"
-                    android:text="Save Complete Profile"
+                    android:text="Save Profile"
                     android:textColor="@color/white"
                     android:textStyle="bold"
                     app:cornerRadius="999dp" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
