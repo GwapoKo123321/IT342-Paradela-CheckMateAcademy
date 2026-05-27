@@ -29,9 +29,8 @@ class LessonReviewActivity : AppCompatActivity() {
     private lateinit var llChatMessages: LinearLayout
     private lateinit var tvNoChat: TextView
 
-    // Half-move list for stepping through the game
     private var totalMoves = 0
-    private var currentMoveIndex = -1   // -1 = starting position
+    private var currentMoveIndex = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +60,6 @@ class LessonReviewActivity : AppCompatActivity() {
             else                -> lessonDate
         }
 
-        // ── WebView setup ──────────────────────────────────────────────────────
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -79,27 +77,22 @@ class LessonReviewActivity : AppCompatActivity() {
         webView.isHorizontalScrollBarEnabled = false
         webView.webChromeClient = android.webkit.WebChromeClient()
 
-        // Once the chessboard page is ready, fetch and populate lesson data
         webView.webViewClient = object : android.webkit.WebViewClient() {
             override fun onPageFinished(view: WebView, url: String) {
-                // Lock to read-only immediately — no moves can be made in review
+
                 webView.evaluateJavascript("setReadOnly();", null)
                 if (lessonId.isNotEmpty()) fetchAndPopulate(lessonId)
             }
         }
         webView.loadUrl("file:///android_asset/chessboard.html")
 
-        // ── Static buttons ─────────────────────────────────────────────────────
         findViewById<Button>(R.id.btnBackToDashboard).setOnClickListener { finish() }
         findViewById<Button>(R.id.btnReviewFlip).setOnClickListener {
             webView.evaluateJavascript("flipBoard();", null)
         }
 
-        // ── Move navigation ────────────────────────────────────────────────────
         setupNavButtons()
     }
-
-    // ── Fetch and populate ─────────────────────────────────────────────────────
 
     private fun fetchAndPopulate(lessonId: String) {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -112,26 +105,23 @@ class LessonReviewActivity : AppCompatActivity() {
                     }
                     val lesson = response.body()!!
 
-                    // ── 1. Load PGN onto the board (preferred) or fall back to FEN ──
                     val pgn = lesson.pgnHistory?.trim() ?: ""
                     val fen = lesson.boardState?.trim() ?: ""
 
                     if (pgn.isNotEmpty()) {
                         val escaped = pgn.replace("\\", "\\\\").replace("'", "\\'")
                         webView.evaluateJavascript("loadFromPgn('$escaped');", null)
-                        // Count half-moves from the PGN so nav buttons know bounds
+
                         totalMoves = countHalfMoves(pgn)
-                        currentMoveIndex = totalMoves - 1  // start at last move
+                        currentMoveIndex = totalMoves - 1
                     } else if (fen.isNotEmpty()) {
                         val escaped = fen.replace("'", "\\'")
                         webView.evaluateJavascript("updateBoardFromFen('$escaped');", null)
                         totalMoves = 0
                     }
 
-                    // ── 2. Build the move history text ──────────────────────────
                     buildMoveHistoryText(pgn)
 
-                    // ── 3. Render chat messages ─────────────────────────────────
                     renderChat(lesson.notes ?: "[]")
                 }
             } catch (e: Exception) {
@@ -142,17 +132,11 @@ class LessonReviewActivity : AppCompatActivity() {
         }
     }
 
-    // ── Move history ────────────────────────────────────────────────────────────
-
-    /**
-     * Counts the number of half-moves (plies) in a PGN string by stripping
-     * headers and splitting on whitespace tokens that look like SAN moves.
-     */
     private fun countHalfMoves(pgn: String): Int {
         if (pgn.isBlank()) return 0
         return pgn
-            .replace(Regex("\\[[^\\]]*\\]"), "")  // strip [Tag "Val"]
-            .replace(Regex("\\{[^}]*\\}"), "")     // strip {comments}
+            .replace(Regex("\\[[^\\]]*\\]"), "")
+            .replace(Regex("\\{[^}]*\\}"), "")
             .trim()
             .split(Regex("\\s+"))
             .filter { it.isNotBlank() && !it.matches(Regex("\\d+\\.+")) &&
@@ -185,17 +169,15 @@ class LessonReviewActivity : AppCompatActivity() {
         tvMoveHistory.text = sb.toString().trim()
     }
 
-    // ── Navigation ──────────────────────────────────────────────────────────────
-
     private fun setupNavButtons() {
         try {
-            // |< — go to start
+
             findViewById<Button>(R.id.btnNavFirst).setOnClickListener {
                 currentMoveIndex = -1
                 webView.evaluateJavascript("goToMove(-1);", null)
                 highlightMove(-1)
             }
-            // < — previous half-move
+
             findViewById<Button>(R.id.btnNavPrev).setOnClickListener {
                 if (currentMoveIndex > -1) {
                     currentMoveIndex--
@@ -203,7 +185,7 @@ class LessonReviewActivity : AppCompatActivity() {
                     highlightMove(currentMoveIndex)
                 }
             }
-            // > — next half-move
+
             findViewById<Button>(R.id.btnNavNext).setOnClickListener {
                 if (currentMoveIndex < totalMoves - 1) {
                     currentMoveIndex++
@@ -211,19 +193,15 @@ class LessonReviewActivity : AppCompatActivity() {
                     highlightMove(currentMoveIndex)
                 }
             }
-            // >| — go to last move
+
             findViewById<Button>(R.id.btnNavLast).setOnClickListener {
                 currentMoveIndex = totalMoves - 1
                 webView.evaluateJavascript("goToMove($currentMoveIndex);", null)
                 highlightMove(currentMoveIndex)
             }
-        } catch (e: Exception) { /* graceful skip */ }
+        } catch (e: Exception) {  }
     }
 
-    /**
-     * Rebuilds the move-history text with the current half-move highlighted
-     * in bold so the reviewer can see exactly where they are in the game.
-     */
     private fun highlightMove(halfMoveIndex: Int) {
         val raw = tvMoveHistory.text.toString()
         if (raw == "No moves recorded." || raw.isBlank()) return
@@ -231,10 +209,10 @@ class LessonReviewActivity : AppCompatActivity() {
         val lines = raw.split("\n").filter { it.isNotBlank() }
         val sb = StringBuilder()
         lines.forEachIndexed { lineIdx, line ->
-            // Each line covers 2 half-moves: white at 2*lineIdx, black at 2*lineIdx+1
+
             val whitePly = lineIdx * 2
             val blackPly = lineIdx * 2 + 1
-            val parts = line.split(Regex("\\s{2,}"), limit = 2) // "N. white  black"
+            val parts = line.split(Regex("\\s{2,}"), limit = 2)
             if (parts.size == 2) {
                 val wPart = if (halfMoveIndex == whitePly) "[${parts[0]}]" else parts[0]
                 val bPart = if (halfMoveIndex == blackPly) "[${parts[1]}]" else parts[1]
@@ -247,8 +225,6 @@ class LessonReviewActivity : AppCompatActivity() {
         tvMoveHistory.text = sb.toString().trim()
     }
 
-    // ── Chat rendering ──────────────────────────────────────────────────────────
-
     private fun renderChat(notesJson: String) {
         val messages = try {
             val arr = JSONArray(notesJson)
@@ -258,7 +234,7 @@ class LessonReviewActivity : AppCompatActivity() {
                 val role    = obj.optString("sender", "").trim()
                 val message = obj.optString("text",   "").trim()
                 val time    = obj.optString("time",   "").trim()
-                // pack name+role together so renderChat can split them
+
                 if (message.isNotEmpty()) Triple("$name|$role", message, time) else null
             }
         } catch (e: Exception) {
@@ -272,7 +248,7 @@ class LessonReviewActivity : AppCompatActivity() {
 
         tvNoChat.visibility = android.view.View.GONE
         messages.forEach { (triple, message, time) ->
-            // triple = "Name|ROLE"
+
             val parts  = triple.split("|")
             val name   = parts.getOrElse(0) { triple }
             val role   = parts.getOrElse(1) { "" }
@@ -281,7 +257,7 @@ class LessonReviewActivity : AppCompatActivity() {
     }
 
     private fun addChatBubble(name: String, role: String, message: String, time: String) {
-        // Coach → left (grey box), Student → right (brand-brown box)
+
         val isStudent = role.equals("STUDENT", ignoreCase = true)
         val gravity   = if (isStudent) Gravity.END else Gravity.START
 
@@ -293,7 +269,6 @@ class LessonReviewActivity : AppCompatActivity() {
             ).apply { setMargins(0, 0, 0, 20) }
         }
 
-        // Header: "Name • 02:30 PM" — aligned to bubble side
         container.addView(TextView(this).apply {
             text = if (time.isNotBlank()) "$name • $time" else name
             textSize = 10f
@@ -305,7 +280,6 @@ class LessonReviewActivity : AppCompatActivity() {
             ).apply { bottomMargin = 4 }
         })
 
-        // Message box — flat rectangle, no rounded corners
         container.addView(TextView(this).apply {
             text = message
             textSize = 14f

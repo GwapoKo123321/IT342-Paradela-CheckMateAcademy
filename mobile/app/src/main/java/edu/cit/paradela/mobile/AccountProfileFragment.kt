@@ -37,10 +37,8 @@ class AccountProfileFragment : Fragment() {
         etElo           = view.findViewById(R.id.etProfileElo)
         btnSave         = view.findViewById(R.id.btnSaveProfile)
 
-        // Get the user ID passed in from LoginActivity
         userId = requireActivity().intent.getStringExtra("USER_ID") ?: ""
 
-        // Pre-fill profile fields from the login/register intent when available.
         val savedName = requireActivity().intent.getStringExtra("NAME")
         if (!savedName.isNullOrBlank()) etFullName.setText(savedName)
         requireActivity().intent.getStringExtra("CHESS_USERNAME")

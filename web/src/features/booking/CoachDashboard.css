@@ -1,9 +1,7 @@
 .coach-layout { display: flex; height: 100vh; overflow: hidden; background-color: #F5F1EA; }
 
-/* The fix: width is now max-content with a minimum of 250px */
 .coach-sidebar { width: max-content; min-width: 250px; background-color: #6B4F3A; color: white; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; height: 100vh; box-sizing: border-box; overflow-y: auto; }
 
-/* Text stays large, never wraps, and the sidebar stretches to fit it */
 .coach-sidebar h2 { font-size: 1.5rem !important; white-space: nowrap; text-align: center; margin-bottom: 1rem; margin-top: 0; }
 
 .coach-side-btn { background-color: white; color: #6B4F3A; padding: 1rem; border-radius: 999px; border: none; font-weight: bold; cursor: pointer; }

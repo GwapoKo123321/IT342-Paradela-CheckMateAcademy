@@ -1,16 +1,8 @@
-/**
- * useNotifications.js
- *
- * Shared hook that provides:
- *   - toast(message, type?)  — 'success' | 'error' | 'info' | 'warning'
- *   - confirm(message, title?, danger?)  → Promise<boolean>
- *   - <ToastContainer />  — render once per page
- *   - <ConfirmModal />    — render once per page
- */
+
+
 import React, { useCallback, useRef, useState } from 'react';
 import './notifications.css';
 
-/* ─── Toast ─────────────────────────────────────────────────────────────── */
 const ICONS = {
   success: '✓',
   error:   '✕',
@@ -27,7 +19,6 @@ export function useToast() {
     const id = ++_toastId;
     setToasts(prev => [...prev, { id, message, type, leaving: false }]);
 
-    // Auto-dismiss after 3.5 s
     setTimeout(() => {
       setToasts(prev => prev.map(t => t.id === id ? { ...t, leaving: true } : t));
       setTimeout(() => {
@@ -56,7 +47,6 @@ export function useToast() {
   return { toast, ToastContainer };
 }
 
-/* ─── Confirm Modal ──────────────────────────────────────────────────────── */
 export function useConfirm() {
   const [modal, setModal] = useState(null);
   const resolveRef = useRef(null);

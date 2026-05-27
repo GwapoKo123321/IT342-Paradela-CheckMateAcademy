@@ -53,14 +53,12 @@ public class LessonController {
         return ResponseEntity.ok(lessonService.getLessonById(lessonId));
     }
 
-    // UPDATED: Uses Map to correctly extract the "notes" value from the JSON payload
     @PutMapping("/{lessonId}/notes")
     public ResponseEntity<Lesson> updateNotes(@PathVariable UUID lessonId, @RequestBody Map<String, String> payload) {
         String notes = payload.get("notes");
         return ResponseEntity.ok(lessonService.saveLessonNotes(lessonId, notes));
     }
 
-    // UPDATED: Uses Map to extract both FEN and PGN from the JSON payload
     @PutMapping("/{lessonId}/board")
     public ResponseEntity<Lesson> updateBoardState(@PathVariable UUID lessonId, @RequestBody Map<String, String> payload) {
         String boardState = payload.get("boardState");

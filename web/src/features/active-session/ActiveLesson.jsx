@@ -29,25 +29,21 @@ const ActiveLesson = () => {
 
   const [lesson, setLesson] = useState(null);
 
-  // Chat State
   const [chatMessages, setChatMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const chatEndRef = useRef(null);
 
-  // Board & History State
   const [fen, setFen] = useState(START_FEN);
   const [pgn, setPgn] = useState('');
   const historyListRef = useRef(null);
   const [orientation, setOrientation] = useState(user.role === 'Coach' ? 'white' : 'black');
 
-  // Move History Tracking
   const [gameHistory, setGameHistory] = useState([]);
   const [viewIndex, setViewIndex] = useState(-1);
 
   const isCoach = user.role === 'Coach';
   const isCompleted = lesson?.status === 'COMPLETED';
 
-  // Refs
   const fenRef = useRef(fen);
   const pgnRef = useRef(pgn);
   const pendingBoardStateRef = useRef(null);
@@ -67,7 +63,6 @@ const ActiveLesson = () => {
     viewIndexRef.current = viewIndex;
   }, [viewIndex]);
 
-  // Update gameHistory whenever PGN changes
   useEffect(() => {
     const tempChess = new Chess();
     try {
@@ -97,16 +92,14 @@ const ActiveLesson = () => {
         setViewIndex(hist.length - 1);
       }
     } catch (e) {
-      // Ignore PGN parsing errors
+
     }
   }, [pgn, isCompleted, viewIndex, gameHistory.length]);
 
-  // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  // Auto-scroll move history when viewIndex changes
   useEffect(() => {
     const activeMoveEl = historyListRef.current?.querySelector('.active-move');
     if (activeMoveEl) {
@@ -146,7 +139,6 @@ const ActiveLesson = () => {
         const data = await bookingService.getLessonById(id);
         setLesson(data);
 
-        // Board Sync
         if (requestStartedAt >= lastLocalMoveTime.current) {
           const serverBoardState = data.boardState;
 
@@ -163,7 +155,6 @@ const ActiveLesson = () => {
           }
         }
 
-        // Chat Sync
         if (requestStartedAt >= lastChatTimeRef.current) {
           if (data.notes) {
             if (data.notes === pendingNotesRef.current) {
@@ -179,7 +170,7 @@ const ActiveLesson = () => {
                 chatMessagesRef.current = parsed;
               }
             } catch (e) {
-              // Ignore
+
             }
           }
         }
@@ -192,7 +183,6 @@ const ActiveLesson = () => {
     return () => clearInterval(syncInterval);
   }, [id, isCoach, isCompleted, navigate]);
 
-  // Chat Submission
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!currentMessage.trim() || isCompleted) return;

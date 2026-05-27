@@ -13,19 +13,18 @@ const Register = () => {
   const handleRoleChange = (newRole) => {
     setRole(newRole);
     setFormData({ ...formData, role: newRole });
-    setErrorMsg(''); // Clear errors when switching roles
+    setErrorMsg('');
   };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrorMsg(''); // Clear error when user starts typing again
+    setErrorMsg('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
-    // --- BASIC VALIDATIONS ---
     if (formData.password.length < 6) {
       setErrorMsg("Password must be at least 6 characters long.");
       return;

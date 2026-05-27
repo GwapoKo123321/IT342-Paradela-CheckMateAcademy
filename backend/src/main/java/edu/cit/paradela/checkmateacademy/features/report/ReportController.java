@@ -14,18 +14,15 @@ public class ReportController {
     @Autowired
     private ReportRepository reportRepository;
 
-
     @PostMapping
     public ResponseEntity<Report> submitReport(@RequestBody Report report) {
         return ResponseEntity.ok(reportRepository.save(report));
     }
 
-
     @GetMapping
     public ResponseEntity<List<Report>> getAllReports() {
         return ResponseEntity.ok(reportRepository.findAllByOrderByCreatedAtDesc());
     }
-
 
     @PutMapping("/{reportId}/resolve")
     public ResponseEntity<Report> resolveReport(@PathVariable UUID reportId) {

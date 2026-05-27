@@ -21,7 +21,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // ESLint Fix: Removed 'const data =' since we just need the request to succeed
+
       await authService.loginUser(credentials);
       navigate('/dashboard');
     } catch (error) {

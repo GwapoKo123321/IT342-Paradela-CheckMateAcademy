@@ -27,7 +27,6 @@ public class CoachProfileResponse {
         this.chessUsername = user.getChessUsername();
         this.currentElo = user.getCurrentElo();
 
-
         this.eloVerified = user.getEloVerified() != null ? user.getEloVerified() : false;
 
         this.specialties = profile != null ? profile.getSpecialties() : "";

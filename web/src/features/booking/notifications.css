@@ -1,6 +1,5 @@
-/* ── Shared Toast & ConfirmModal ─────────────────────────────────────────── */
 
-/* ── Toast container ─────────────────────────────────────────────────────── */
+
 .cma-toast-root {
   position: fixed;
   bottom: 2rem;
@@ -65,7 +64,6 @@
   to { opacity: 0; transform: translateY(10px) scale(0.9); }
 }
 
-/* ── Confirm Modal ───────────────────────────────────────────────────────── */
 .cma-modal-backdrop {
   position: fixed;
   inset: 0;

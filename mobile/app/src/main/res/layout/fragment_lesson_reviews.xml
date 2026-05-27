@@ -22,7 +22,6 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
-        <!-- Dynamic lesson cards are added here by LessonReviewsFragment -->
         <LinearLayout
             android:id="@+id/llReviewsContainer"
             android:layout_width="match_parent"

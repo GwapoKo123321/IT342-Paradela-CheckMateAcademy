@@ -39,7 +39,7 @@ const CoachDirectory = () => {
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-        {/* Coach Card Styled */}
+        {}
         <div style={{
           backgroundColor: '#6B4F3A',
           borderRadius: '60px',

@@ -5,7 +5,6 @@ import authService from '../auth/authService';
 import { useToast, useConfirm } from './useNotifications';
 import './CoachDashboard.css';
 
-/** True when now is within 10 min of lesson start (or after start). */
 const canJoinLesson = (startTime) => {
   const windowOpen = new Date(new Date(startTime).getTime() - 10 * 60 * 1000);
   return new Date() >= windowOpen;
@@ -127,14 +126,12 @@ const CoachDashboard = () => {
     }
   }, [user.id]);
 
-  // Poll every 10 s while on the schedule view so incoming bookings and status
-  // changes from the student side appear automatically without a page refresh.
   useEffect(() => {
     if (!user.id) return;
-    loadLessons();                                        // immediate fetch
+    loadLessons();
     if (activeView !== 'schedule') return;
-    const interval = setInterval(loadLessons, 10_000);   // poll every 10 s
-    return () => clearInterval(interval);                 // clean up on tab switch
+    const interval = setInterval(loadLessons, 10_000);
+    return () => clearInterval(interval);
   }, [user.id, activeView, loadLessons]);
 
   useEffect(() => {
@@ -159,16 +156,14 @@ const CoachDashboard = () => {
       if (!ok) return;
     }
 
-    // ── Optimistic update: change the status immediately in local state ──────
-    // The UI reflects the new status before the API even responds.
     setLessons(prev => prev.map(l => l.id === lessonId ? { ...l, status: action } : l));
 
     try {
       await bookingService.updateLessonStatus(lessonId, action);
       toast(`Lesson ${action.toLowerCase()}.`, 'success');
-      loadLessons(); // background sync to confirm server state
+      loadLessons();
     } catch (error) {
-      // Revert by reloading true server state on failure
+
       loadLessons();
       toast('Failed to update status. Changes reverted.', 'error');
     }

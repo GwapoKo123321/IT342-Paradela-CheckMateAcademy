@@ -32,13 +32,11 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
     }
 
-    // NEW ENDPOINT: Toggle Flag
     @PutMapping("/users/{userId}/flag")
     public ResponseEntity<User> toggleUserFlag(@PathVariable UUID userId) {
         return ResponseEntity.ok(adminService.toggleUserFlag(userId));
     }
 
-    // NEW ENDPOINT: Toggle ELO
     @PutMapping("/users/{userId}/verify-elo")
     public ResponseEntity<User> toggleEloVerification(@PathVariable UUID userId) {
         return ResponseEntity.ok(adminService.toggleEloVerification(userId));

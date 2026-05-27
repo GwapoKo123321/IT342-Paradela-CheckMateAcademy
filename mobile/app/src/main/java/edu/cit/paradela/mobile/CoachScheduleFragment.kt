@@ -33,10 +33,7 @@ class CoachScheduleFragment : Fragment() {
     private var coachId: String = ""
     private var coachName: String = ""
 
-    /** Polling coroutine — runs every 10 s while the fragment is visible. */
     private var pollingJob: Job? = null
-
-    // ── Join window helpers ─────────────────────────────────────────────────
 
     private fun canJoinLesson(startTime: String?): Boolean {
         if (startTime == null) return true
@@ -74,10 +71,8 @@ class CoachScheduleFragment : Fragment() {
 
         coachId   = requireActivity().intent.getStringExtra("USER_ID") ?: ""
         coachName = requireActivity().intent.getStringExtra("NAME")    ?: "Coach"
-        // Initial fetch is triggered by onResume() below
-    }
 
-    // ── Polling lifecycle ───────────────────────────────────────────────────
+    }
 
     override fun onResume() {
         super.onResume()
@@ -90,11 +85,6 @@ class CoachScheduleFragment : Fragment() {
         pollingJob = null
     }
 
-    /**
-     * Fetch the lesson list immediately, then repeat every 10 seconds while
-     * the fragment is in the foreground. New student bookings and status changes
-     * appear automatically without the coach needing to refresh.
-     */
     private fun startPolling() {
         pollingJob?.cancel()
         pollingJob = viewLifecycleOwner.lifecycleScope.launch {
@@ -113,7 +103,7 @@ class CoachScheduleFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Correct endpoint: GET /api/lessons/coach/{coachId}
+
                 val response = RetrofitClient.coachService.getCoachLessons(coachId)
 
                 withContext(Dispatchers.Main) {
@@ -155,7 +145,6 @@ class CoachScheduleFragment : Fragment() {
 
         val contentLayout = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL }
 
-        // Student Name
         val nameText = TextView(requireContext()).apply {
             text = "Student: ${lesson.studentName ?: "Unknown Student"}"
             textSize = 20f
@@ -163,7 +152,6 @@ class CoachScheduleFragment : Fragment() {
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
 
-        // Time
         val timeText = TextView(requireContext()).apply {
             text = formatLessonTime(lesson.startTime)
             textSize = 14f
@@ -171,7 +159,6 @@ class CoachScheduleFragment : Fragment() {
             setPadding(0, 8, 0, 24)
         }
 
-        // Status Badge — kept as a reference so we can update it optimistically
         val statusBadge = TextView(requireContext()).apply {
             text = lesson.status ?: "PENDING"
             textSize = 12f
@@ -184,7 +171,6 @@ class CoachScheduleFragment : Fragment() {
         contentLayout.addView(timeText)
         contentLayout.addView(statusBadge)
 
-        // Action buttons row — only for PENDING
         if (lesson.status == "PENDING") {
             val buttonRow = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -203,7 +189,7 @@ class CoachScheduleFragment : Fragment() {
                     .apply { rightMargin = 16 }
                 layoutParams = params
                 setOnClickListener {
-                    // Optimistic update — instant visual feedback
+
                     applyStatusStyle(statusBadge, "ACCEPTED")
                     statusBadge.text = "ACCEPTED"
                     buttonRow.visibility = View.GONE
@@ -217,7 +203,7 @@ class CoachScheduleFragment : Fragment() {
                 setTextColor(Color.WHITE)
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 setOnClickListener {
-                    // Optimistic update — instant visual feedback
+
                     applyStatusStyle(statusBadge, "REJECTED")
                     statusBadge.text = "REJECTED"
                     buttonRow.visibility = View.GONE
@@ -230,7 +216,6 @@ class CoachScheduleFragment : Fragment() {
             contentLayout.addView(buttonRow)
         }
 
-        // Join button — show for ACCEPTED lessons
         if (lesson.status == "ACCEPTED") {
             val btnJoin = Button(requireContext()).apply {
                 val params = LinearLayout.LayoutParams(
@@ -240,13 +225,13 @@ class CoachScheduleFragment : Fragment() {
                 layoutParams = params
 
                 if (canJoinLesson(lesson.startTime)) {
-                    // Within 10-minute window — active gold
+
                     text = "Join Lesson"
                     setBackgroundColor(Color.parseColor("#D4AF37"))
                     isEnabled = true
                     alpha = 1f
                 } else {
-                    // Too early — grey countdown
+
                     text = joinCountdownLabel(lesson.startTime)
                     setBackgroundColor(Color.parseColor("#9E9E9E"))
                     isEnabled = false
@@ -269,7 +254,6 @@ class CoachScheduleFragment : Fragment() {
         llContainer.addView(card)
     }
 
-    /** Apply color + text style to a status badge view for the given status string. */
     private fun applyStatusStyle(badge: TextView, status: String) {
         when (status) {
             "ACCEPTED"  -> { badge.setTextColor(Color.parseColor("#1E40AF")); badge.setBackgroundColor(Color.parseColor("#DBEAFE")) }
@@ -279,11 +263,6 @@ class CoachScheduleFragment : Fragment() {
         }
     }
 
-    /**
-     * Update lesson status on the server.
-     * The optimistic UI change is already applied by the caller before this runs.
-     * On failure, we revert by reloading the full list from the server.
-     */
     private fun updateLessonStatus(
         lessonId: String,
         status: String,
@@ -299,10 +278,10 @@ class CoachScheduleFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
                         Toast.makeText(requireContext(), "Lesson ${status.lowercase()}.", Toast.LENGTH_SHORT).show()
-                        // Background sync — confirms the list matches server state
+
                         fetchCoachLessons()
                     } else {
-                        // Revert the optimistic update by reloading from server
+
                         Toast.makeText(requireContext(), "Failed to update status.", Toast.LENGTH_SHORT).show()
                         fetchCoachLessons()
                     }
@@ -310,7 +289,7 @@ class CoachScheduleFragment : Fragment() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "Network error.", Toast.LENGTH_SHORT).show()
-                    fetchCoachLessons() // revert
+                    fetchCoachLessons()
                 }
             }
         }
@@ -325,9 +304,6 @@ class CoachScheduleFragment : Fragment() {
         llContainer.addView(tv)
     }
 
-    /**
-     * Converts "2026-05-26T10:00:00" → "May 26, 2026 • 10:00 AM"
-     */
     private fun formatLessonTime(raw: String?): String {
         if (raw == null) return "Unknown Time"
         return try {

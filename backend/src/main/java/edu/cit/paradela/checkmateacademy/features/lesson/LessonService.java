@@ -59,7 +59,6 @@ public class LessonService {
         return lessonRepository.save(lesson);
     }
 
-    // UPDATED: Saves both the live piece movements (FEN) and history (PGN)
     public Lesson updateBoardState(UUID lessonId, String boardState, String pgnHistory) {
         Lesson lesson = getLessonById(lessonId);
         lesson.setBoardState(boardState);

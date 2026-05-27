@@ -26,11 +26,9 @@ class TrainingBoardFragment : Fragment() {
     private lateinit var btnFlip: ImageButton
     private lateinit var btnClear: Button
 
-    // ── Move history state (maintained in Kotlin, driven by JS callbacks) ──────
     private val moveHistory = mutableListOf<String>()
-    private var viewIndex = -1   // -1 = start position
+    private var viewIndex = -1
 
-    // Pre-compiled regex (no allocations in loops)
     companion object {
         private val MOVENUM_RE   = Regex("^\\d+\\.+$")
         private val RESULT_TOK   = Regex("^(1-0|0-1|1/2-1/2|\\*)$")
@@ -62,7 +60,6 @@ class TrainingBoardFragment : Fragment() {
         updateUi()
     }
 
-    // ── WebView ───────────────────────────────────────────────────────────────
     @Suppress("DEPRECATION")
     private fun setupWebView() {
         webView.settings.apply {
@@ -83,13 +80,11 @@ class TrainingBoardFragment : Fragment() {
         webView.webViewClient   = WebViewClient()
         webView.webChromeClient = WebChromeClient()
 
-        // Register JS → Kotlin bridge so the board can push move events to us
         webView.addJavascriptInterface(TrainingBridge(this), "AndroidBridge")
 
         webView.loadUrl("file:///android_asset/chessboard.html")
     }
 
-    // ── Button wiring ─────────────────────────────────────────────────────────
     private fun wireButtons() {
         btnFastRewind .setOnClickListener { navigateTo(-1) }
         btnPrev       .setOnClickListener { navigateTo(viewIndex - 1) }
@@ -99,15 +94,13 @@ class TrainingBoardFragment : Fragment() {
         btnClear      .setOnClickListener { clearBoard() }
     }
 
-    // ── Called from JS bridge when a move is played on the board ─────────────
     fun onLocalMove(newFen: String, newPgn: String) {
-        // Rebuild history from the PGN the board just produced
+
         rebuildHistory(newPgn)
         viewIndex = moveHistory.size - 1
         updateUi()
     }
 
-    // ── Navigation ────────────────────────────────────────────────────────────
     private fun navigateTo(index: Int) {
         val max = (moveHistory.size - 1).coerceAtLeast(-1)
         viewIndex = index.coerceIn(-1, max)
@@ -122,12 +115,10 @@ class TrainingBoardFragment : Fragment() {
         updateUi()
     }
 
-    // ── History rebuild ───────────────────────────────────────────────────────
     private fun rebuildHistory(pgn: String) {
         moveHistory.clear()
         if (pgn.isBlank()) return
 
-        // Strip headers and result tokens
         val movesSection = pgn.lines()
             .filter { !it.trimStart().startsWith("[") }
             .joinToString(" ")
@@ -143,7 +134,6 @@ class TrainingBoardFragment : Fragment() {
         }
     }
 
-    // ── UI refresh ────────────────────────────────────────────────────────────
     private fun updateUi() {
         updateMoveHistoryText()
         updateNavButtons()
@@ -182,11 +172,8 @@ class TrainingBoardFragment : Fragment() {
         }
     }
 
-    // ── JS helper ─────────────────────────────────────────────────────────────
     private fun js(script: String) = webView.evaluateJavascript(script, null)
 
-    // ── JS → Kotlin bridge ────────────────────────────────────────────────────
-    // Static class + WeakReference to avoid leaking the Fragment.
     class TrainingBridge(fragment: TrainingBoardFragment) {
         private val ref = java.lang.ref.WeakReference(fragment)
 

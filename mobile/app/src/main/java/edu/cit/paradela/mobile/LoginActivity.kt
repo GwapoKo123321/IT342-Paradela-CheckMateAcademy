@@ -30,17 +30,14 @@ class LoginActivity : AppCompatActivity() {
             insets
         }
 
-        // PERFECTLY MAPPED TO YOUR ORIGINAL XML IDs
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnSubmitLogin = findViewById<Button>(R.id.btnSubmitLogin)
 
-        // --- HERE IS YOUR NEW REGISTER BUTTON WIRING ---
         val tvGoToRegister = findViewById<TextView>(R.id.tvGoToRegister)
         tvGoToRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
-        // -----------------------------------------------
 
         btnSubmitLogin.setOnClickListener {
             val email = etEmail.text.toString().trim()
@@ -51,17 +48,14 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // UI Update for Render Cold Start
             btnSubmitLogin.isEnabled = false
             btnSubmitLogin.text = "Waking Server... Please wait"
 
-            // Fire the Network Request
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val request = LoginRequest(email, password)
                     val response = RetrofitClient.authService.loginUser(request)
 
-                    // Switch back to Main thread for UI updates
                     withContext(Dispatchers.Main) {
                         if (response.isSuccessful && response.body() != null) {
                             val authResponse = response.body()!!

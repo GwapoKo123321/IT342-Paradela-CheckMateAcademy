@@ -31,7 +31,7 @@ class BookLessonFragment : Fragment() {
     private lateinit var etBookingDate: EditText
     private lateinit var btnConfirmBooking: Button
 
-    private var selectedDateStr: String? = null        // YYYY-MM-DD for the query
+    private var selectedDateStr: String? = null
     private var selectedSlot: CoachAvailableSlot? = null
 
     private val slotCards = mutableListOf<MaterialCardView>()
@@ -49,7 +49,6 @@ class BookLessonFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Grab studentId and name from the login intent
         studentId = requireActivity().intent.getStringExtra("USER_ID") ?: ""
         studentName = requireActivity().intent.getStringExtra("NAME") ?: "Student"
 
@@ -79,15 +78,12 @@ class BookLessonFragment : Fragment() {
             { _, year, month, dayOfMonth ->
                 calendar.set(year, month, dayOfMonth)
 
-                // Display format: MM/dd/yyyy
                 val displayFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
                 etBookingDate.setText(displayFormat.format(calendar.time))
 
-                // Query format for backend: YYYY-MM-DD
                 val queryFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 selectedDateStr = queryFormat.format(calendar.time)
 
-                // Reset selection and fetch slots for this date
                 selectedSlot = null
                 btnConfirmBooking.isEnabled = false
                 fetchAvailableSlots(selectedDateStr!!)
@@ -96,27 +92,22 @@ class BookLessonFragment : Fragment() {
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
-        // Prevent picking past dates
+
         picker.datePicker.minDate = Calendar.getInstance().timeInMillis
         picker.show()
     }
 
-    /**
-     * Returns true if the slot's start time is still in the future.
-     * Builds an unambiguous local Date from [dateStr] (YYYY-MM-DD) + the
-     * HH:MM portion of [slot.startTime] so there is no UTC/local ambiguity.
-     */
     private fun isSlotFuture(slot: CoachAvailableSlot, dateStr: String): Boolean {
         return try {
             val rawTime = slot.startTime ?: return true
-            // startTime may be "2026-05-26T10:00:00" — extract "10:00"
+
             val timePart = if (rawTime.contains('T')) rawTime.substringAfter('T').substring(0, 5)
                            else rawTime.substring(0, 5)
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.getDefault())
             val slotDate: Date = sdf.parse("${dateStr}T${timePart}") ?: return true
             slotDate.after(Date())
         } catch (e: Exception) {
-            true // fail open — never accidentally hide a valid future slot
+            true
         }
     }
 
@@ -133,7 +124,7 @@ class BookLessonFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Correct endpoint: GET /api/users/coaches/available-slots?date=YYYY-MM-DD&studentId=UUID
+
                 val response = RetrofitClient.studentService.getAvailableSlots(
                     date = date,
                     studentId = studentId
@@ -145,7 +136,7 @@ class BookLessonFragment : Fragment() {
 
                     if (response.isSuccessful && response.body() != null) {
                         val allSlots = response.body()!!
-                        // Filter out any slots whose time has already passed
+
                         val slots = allSlots.filter { isSlotFuture(it, date) }
                         if (slots.isEmpty()) {
                             showEmptyMessage("No available coaches on this date. Try another day.")
@@ -176,7 +167,6 @@ class BookLessonFragment : Fragment() {
         val tvName = cardView.findViewById<TextView>(R.id.tvItemCoachName)
         val tvElo = cardView.findViewById<TextView>(R.id.tvItemCoachElo)
 
-        // Format: "Coach Name  •  10:00 AM – 11:00 AM"
         val startFormatted = formatSlotTime(slot.startTime)
         val endFormatted   = formatSlotTime(slot.endTime)
         tvName.text = "${slot.coachName ?: "Unknown Coach"}  •  $startFormatted – $endFormatted"
@@ -186,7 +176,6 @@ class BookLessonFragment : Fragment() {
         else "ELO: Unrated"
         tvElo.text = eloText
 
-        // Dim if student has a conflict
         if (slot.studentConflict == true) {
             cardView.alpha = 0.5f
             tvElo.text = "$eloText  |  ${slot.conflictLabel ?: "You have a conflict"}"
@@ -198,14 +187,12 @@ class BookLessonFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Deselect all cards
             slotCards.forEach {
                 it.strokeColor = Color.parseColor("#E5E7EB")
                 it.strokeWidth = 2
                 it.setCardBackgroundColor(Color.WHITE)
             }
 
-            // Highlight selected
             cardView.strokeColor = Color.parseColor("#D4AF37")
             cardView.strokeWidth = 4
             cardView.setCardBackgroundColor(Color.parseColor("#FFFDF5"))
@@ -234,7 +221,6 @@ class BookLessonFragment : Fragment() {
                     endTime = slot.endTime ?: ""
                 )
 
-                // Correct endpoint: POST /api/lessons
                 val response = RetrofitClient.studentService.bookLesson(request)
 
                 withContext(Dispatchers.Main) {
@@ -245,7 +231,7 @@ class BookLessonFragment : Fragment() {
                             "Lesson booked! Waiting for coach approval.",
                             Toast.LENGTH_LONG
                         ).show()
-                        // Reset the form
+
                         selectedSlot = null
                         selectedDateStr = null
                         etBookingDate.setText("")
@@ -277,10 +263,6 @@ class BookLessonFragment : Fragment() {
         llAvailableTimesContainer.addView(tv)
     }
 
-    /**
-     * Converts an ISO datetime string ("2026-05-26T10:00:00") or a time-only
-     * string ("10:00:00") into a 12-hour AM/PM string like "10:00 AM".
-     */
     private fun formatSlotTime(raw: String?): String {
         if (raw == null) return ""
         return try {

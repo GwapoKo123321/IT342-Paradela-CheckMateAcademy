@@ -25,8 +25,6 @@ public class UserController {
     @Autowired
     private CoachProfileService coachProfileService;
 
-    // --- EXISTING COACH LOGIC ---
-
     @GetMapping("/coaches")
     public ResponseEntity<List<CoachProfileResponse>> getCoaches(
             @RequestParam(required = false) String startTime,
@@ -92,7 +90,6 @@ public class UserController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // If the user attempts to change their ELO, automatically drop their verification status
         if (updateData.getCurrentElo() != null && !updateData.getCurrentElo().equals(user.getCurrentElo())) {
             user.setEloVerified(false);
         }

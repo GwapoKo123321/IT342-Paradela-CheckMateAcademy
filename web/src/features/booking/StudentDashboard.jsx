@@ -46,42 +46,26 @@ const formatBookingDate = (value) => new Date(`${value}T00:00:00`).toLocaleDateS
   day: 'numeric'
 });
 
-/**
- * True when the given slot's start time is still in the future relative to `now`.
- *
- * WHY this approach:
- * The backend may return startTime as "2026-05-26T10:00:00" (no timezone suffix).
- * Browsers differ on whether they treat that as local or UTC, which breaks a simple
- * `new Date(slot.startTime) > new Date()` comparison.
- *
- * Instead we explictly build a local Date from the selected bookingDate + the time
- * part of startTime, so it is always unambiguously in the local timezone.
- */
 const isSlotFuture = (slot, bookingDate, now) => {
   try {
-    // Extract HH:MM from whatever format the server returned (ISO or "HH:MM:SS" etc.)
+
     const rawTime = slot.startTime || '';
     const timePart = rawTime.includes('T')
-      ? rawTime.split('T')[1].slice(0, 5)   // "2026-05-26T10:00:00" → "10:00"
-      : rawTime.slice(0, 5);                 // "10:00:00" → "10:00"
-    // Build an unambiguous local-time Date using the date the student chose
+      ? rawTime.split('T')[1].slice(0, 5)
+      : rawTime.slice(0, 5);
+
     const slotDate = new Date(`${bookingDate}T${timePart}:00`);
     return slotDate > now;
   } catch {
-    return true; // fail open so valid slots are never accidentally hidden
+    return true;
   }
 };
 
-/**
- * True when the current time is within the join window:
- * 10 minutes before lesson start or any time after start.
- */
 const canJoinLesson = (startTime) => {
   const windowOpen = new Date(new Date(startTime).getTime() - 10 * 60 * 1000);
   return new Date() >= windowOpen;
 };
 
-/** Human-readable label shown on the disabled Join button before the window opens. */
 const joinCountdownLabel = (startTime) => {
   const minsUntil = Math.ceil((new Date(startTime) - new Date()) / 60_000);
   if (minsUntil <= 10) return 'Join Lesson';
@@ -102,10 +86,9 @@ const StudentDashboard = () => {
     return STUDENT_VIEWS.includes(savedView) ? savedView : 'schedule';
   });
 
-  const [rawSlots, setRawSlots] = useState([]);      // all slots returned by the server
+  const [rawSlots, setRawSlots] = useState([]);
   const [myLessons, setMyLessons] = useState([]);
 
-  // Tick every 60 s so the slot list re-filters automatically as time passes
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const tick = setInterval(() => setNow(new Date()), 60_000);
@@ -117,11 +100,8 @@ const StudentDashboard = () => {
   const [preferredStyle, setPreferredStyle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Derived: only the slots that haven't started yet (recalculated every render)
   const availableSlots = rawSlots.filter(s => isSlotFuture(s, bookingDate, now));
 
-
-  // Profile Edit State
   const [profileForm, setProfileForm] = useState({ fullName: user.fullName || '', chessUsername: user.chessUsername || '', currentElo: user.currentElo || 0 });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
@@ -137,7 +117,6 @@ const StudentDashboard = () => {
     sessionStorage.setItem(activeViewStorageKey, activeView);
   }, [activeView, activeViewStorageKey]);
 
-  // ── Booking slots fetch — filters out past slots client-side ────────────────
   useEffect(() => {
     if (activeView !== 'booking') return;
     if (!bookingDate) { setRawSlots([]); setSelectedSlotKey(''); return; }
@@ -147,8 +126,7 @@ const StudentDashboard = () => {
         const filters = { date: bookingDate, studentId: user.id };
         if (preferredStyle) filters.style = preferredStyle;
         const slots = await bookingService.getAvailableSlots(filters);
-        // Store ALL slots raw — the live `availableSlots` derived value
-        // filters out past ones on every render so stale results are impossible.
+
         setRawSlots(slots);
       } catch (error) {
         console.error('Failed to fetch available slots');
@@ -158,16 +136,12 @@ const StudentDashboard = () => {
     fetchAvailableSlots();
   }, [activeView, user.id, bookingDate, preferredStyle]);
 
-  // Keep selectedSlotKey in sync: clear it if its slot is no longer in the visible list
   useEffect(() => {
     if (selectedSlotKey && !availableSlots.some(s => getSlotKey(s) === selectedSlotKey)) {
       setSelectedSlotKey('');
     }
   }, [availableSlots, selectedSlotKey]);
 
-  // ── Schedule / reviews — fetch immediately then poll every 10 s ───────────
-  // This ensures status changes made by the coach (accept/reject) appear
-  // automatically without the student having to navigate away and back.
   useEffect(() => {
     if (activeView !== 'schedule' && activeView !== 'reviews') return;
 
@@ -180,9 +154,9 @@ const StudentDashboard = () => {
       }
     };
 
-    fetchLessons();                                      // immediate fetch on mount/tab switch
-    const interval = setInterval(fetchLessons, 10_000); // then every 10 seconds
-    return () => clearInterval(interval);               // clean up when leaving the tab
+    fetchLessons();
+    const interval = setInterval(fetchLessons, 10_000);
+    return () => clearInterval(interval);
   }, [activeView, user.id]);
 
   const handleLogout = () => {

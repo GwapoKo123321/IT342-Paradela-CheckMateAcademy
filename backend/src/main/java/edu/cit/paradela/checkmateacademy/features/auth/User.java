@@ -26,7 +26,6 @@ public class User {
     @Column(name = "current_elo")
     private Integer currentElo = 0;
 
-    // NEW ADMIN FLAGS
     @Column(name = "is_flagged")
     private Boolean isFlagged = false;
 

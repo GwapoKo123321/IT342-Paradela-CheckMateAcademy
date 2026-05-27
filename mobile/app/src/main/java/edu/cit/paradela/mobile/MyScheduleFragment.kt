@@ -32,12 +32,6 @@ class MyScheduleFragment : Fragment() {
     private var studentName: String = ""
     private var token: String = ""
 
-    // ── Join window helpers ─────────────────────────────────────────────────
-
-    /**
-     * Returns true if the current time is within 10 minutes of the lesson
-     * start time (or after it). This is the window in which "Join Lesson" is active.
-     */
     private fun canJoinLesson(startTime: String?): Boolean {
         if (startTime == null) return true
         return try {
@@ -48,7 +42,6 @@ class MyScheduleFragment : Fragment() {
         } catch (e: Exception) { true }
     }
 
-    /** Text to show on the disabled button while the window has not opened yet. */
     private fun joinCountdownLabel(startTime: String?): String {
         if (startTime == null) return "Join Lesson"
         return try {
@@ -61,7 +54,6 @@ class MyScheduleFragment : Fragment() {
         } catch (e: Exception) { "Join Lesson" }
     }
 
-    /** Polling coroutine — runs every 10 s while the fragment is visible. */
     private var pollingJob: Job? = null
 
     override fun onCreateView(
@@ -78,10 +70,8 @@ class MyScheduleFragment : Fragment() {
         studentId   = requireActivity().intent.getStringExtra("USER_ID") ?: ""
         studentName = requireActivity().intent.getStringExtra("NAME")    ?: "Student"
         token       = requireActivity().intent.getStringExtra("TOKEN")   ?: ""
-        // Initial fetch is triggered by onResume() below
-    }
 
-    // ── Polling lifecycle ────────────────────────────────────────────────────────
+    }
 
     override fun onResume() {
         super.onResume()
@@ -94,11 +84,6 @@ class MyScheduleFragment : Fragment() {
         pollingJob = null
     }
 
-    /**
-     * Fetch the schedule immediately, then repeat every 10 seconds while
-     * the fragment is in the foreground. This makes status changes made by
-     * the coach (accept / reject) appear without the student navigating away.
-     */
     private fun startPolling() {
         pollingJob?.cancel()
         pollingJob = viewLifecycleOwner.lifecycleScope.launch {
@@ -117,7 +102,7 @@ class MyScheduleFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Correct endpoint: GET /api/lessons/student/{studentId}
+
                 val response = RetrofitClient.studentService.getStudentLessons(studentId)
 
                 withContext(Dispatchers.Main) {
@@ -128,7 +113,7 @@ class MyScheduleFragment : Fragment() {
                         if (lessons.isEmpty()) {
                             showEmptyMessage("No lessons yet. Book one from the Book tab!")
                         } else {
-                            // Show most recent first
+
                             lessons.sortedByDescending { it.startTime }.forEach { lesson ->
                                 createLessonCard(lesson)
                             }
@@ -160,7 +145,6 @@ class MyScheduleFragment : Fragment() {
 
         val contentLayout = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL }
 
-        // Coach Name
         val nameText = TextView(requireContext()).apply {
             text = "Coach: ${lesson.coachName ?: "Unknown Coach"}"
             textSize = 20f
@@ -168,7 +152,6 @@ class MyScheduleFragment : Fragment() {
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
 
-        // Time
         val timeText = TextView(requireContext()).apply {
             text = formatLessonTime(lesson.startTime)
             textSize = 14f
@@ -178,7 +161,6 @@ class MyScheduleFragment : Fragment() {
 
         val bottomRow = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
 
-        // Status Badge
         val statusBadge = TextView(requireContext()).apply {
             text = lesson.status ?: "PENDING"
             textSize = 12f
@@ -198,7 +180,7 @@ class MyScheduleFragment : Fragment() {
                     setTextColor(Color.parseColor("#1E40AF"))
                     setBackgroundColor(Color.parseColor("#DBEAFE"))
                 }
-                else -> { // PENDING
+                else -> {
                     setTextColor(Color.parseColor("#92400E"))
                     setBackgroundColor(Color.parseColor("#FEF3C7"))
                 }
@@ -209,8 +191,6 @@ class MyScheduleFragment : Fragment() {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
-        // Only show a join/review action once the coach has accepted.
-        // PENDING = waiting for coach; REJECTED = declined; neither gets a button.
         if (lesson.status == "ACCEPTED" || lesson.status == "COMPLETED") {
             val btnJoin = Button(requireContext()).apply {
                 when {
@@ -235,14 +215,14 @@ class MyScheduleFragment : Fragment() {
 
                 setOnClickListener {
                     if (lesson.status == "COMPLETED") {
-                        // Go to read-only review screen
+
                         val intent = Intent(requireActivity(), LessonReviewActivity::class.java)
                         intent.putExtra("LESSON_ID", lesson.id)
                         intent.putExtra("COACH_NAME", lesson.coachName ?: "Coach")
                         intent.putExtra("LESSON_DATE", formatLessonTime(lesson.startTime))
                         startActivity(intent)
                     } else {
-                        // Go to live session
+
                         val intent = Intent(requireActivity(), LiveSessionActivity::class.java)
                         intent.putExtra("ROLE", "STUDENT")
                         intent.putExtra("NAME", studentName)
@@ -273,9 +253,6 @@ class MyScheduleFragment : Fragment() {
         llContainer.addView(tv)
     }
 
-    /**
-     * Converts "2026-05-26T10:00:00" → "May 26, 2026 • 10:00 AM"
-     */
     private fun formatLessonTime(raw: String?): String {
         if (raw == null) return "Unknown Time"
         return try {

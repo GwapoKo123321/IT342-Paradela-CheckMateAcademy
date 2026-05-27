@@ -40,14 +40,13 @@ public class AuthController {
 
         return authService.authenticate(credentials.get("email"), credentials.get("password"))
                 .map(user -> {
-                    // 1. FOR ANDROID: Flat root-level variables
+
                     response.put("success", true);
                     response.put("message", "Login successful!");
                     response.put("token", "session-" + user.getId());
                     response.put("role", user.getRole());
                     response.put("userId", String.valueOf(user.getId()));
 
-                    // 2. FOR THE WEB APP: The original nested 'data' object it requires
                     Map<String, Object> data = new HashMap<>();
                     data.put("user", user);
                     data.put("accessToken", "session-" + user.getId());

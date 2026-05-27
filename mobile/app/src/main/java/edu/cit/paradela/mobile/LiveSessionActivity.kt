@@ -35,7 +35,6 @@ import java.util.Locale
 
 class LiveSessionActivity : AppCompatActivity() {
 
-    // ── UI ────────────────────────────────────────────────────────────────────
     private lateinit var webView: WebView
     private lateinit var chatContainer: LinearLayout
     private lateinit var chatScrollView: ScrollView
@@ -48,56 +47,37 @@ class LiveSessionActivity : AppCompatActivity() {
     private lateinit var btnNavNext: Button
     private lateinit var btnNavEnd: Button
 
-    // ── Session identity ──────────────────────────────────────────────────────
     private var lessonId = ""
     private var myRole   = "STUDENT"
     private var myName   = "User"
 
-    // ── Game state  (main thread only unless marked @Volatile) ────────────────
-    /** Flat SAN move list from the current canonical game */
     private val moveHistory = mutableListOf<String>()
-    /** Half-move index currently being viewed; -1 = start */
+
     private var viewIndex = -1
 
-    /**
-     * Stripped PGN (no headers, no result token) of the game we most recently
-     * sent to the WebView.  @Volatile so the IO polling thread can read it
-     * safely without needing a lock.
-     */
     @Volatile private var canonicalPgn = ""
 
-    /** Latest FEN from the server — used for FEN-only fallback */
     @Volatile private var serverFen = ""
 
-    /** Raw notes JSON string from the server */
     @Volatile private var currentNotes = ""
 
-    /** Epoch ms of the last move the LOCAL user made — suppresses echo for 3 s */
     @Volatile private var lastLocalMoveMs = 0L
 
     private var isCompleted = false
 
-    // ── Pre-compiled regex patterns (created ONCE at class load — never inside a loop) ──
-    // Use standard escaped strings (not raw triple-quoted) so Android's ICU
-    // regex engine doesn't reject \{ as an invalid escape sequence.
     companion object {
-        private val HEADER_RE    = Regex("\\[[^\\]]*\\]\\s*")   // [Tag "Value"]
-        private val COMMENT_RE   = Regex("[{][^}]*[}]")           // {comment}
-        private val PAREN_RE     = Regex("[(][^)]*[)]")           // (variation)
-        private val RESULT_RE    = Regex("\\s*(1-0|0-1|1/2-1/2|\\*)\\s*$") // trailing result
-        private val MOVENUM_RE   = Regex("^\\d+\\.+$")           // "1." or "1..."
+        private val HEADER_RE    = Regex("\\[[^\\]]*\\]\\s*")
+        private val COMMENT_RE   = Regex("[{][^}]*[}]")
+        private val PAREN_RE     = Regex("[(][^)]*[)]")
+        private val RESULT_RE    = Regex("\\s*(1-0|0-1|1/2-1/2|\\*)\\s*$")
+        private val MOVENUM_RE   = Regex("^\\d+\\.+$")
         private val RESULT_TOK   = Regex("^(1-0|0-1|1/2-1/2|\\*)$")
         private val WHITESPACE_RE = Regex("\\s+")
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  LIFECYCLE
-    // ═══════════════════════════════════════════════════════════════════════════
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Crash diagnostic overlay — shows the stack trace instead of silently
-        // closing the activity.
         Thread.setDefaultUncaughtExceptionHandler { _, throwable ->
             runOnUiThread {
                 try {
@@ -124,9 +104,7 @@ class LiveSessionActivity : AppCompatActivity() {
             }
 
             lessonId = intent.getStringExtra("LESSON_ID") ?: ""
-            // Normalize to the exact casing the web uses: "Coach" or "Student".
-            // CoachScheduleFragment sends "COACH", but the web stores sender="Coach".
-            // Without this, msg.sender == myRole never matches for coaches.
+
             val rawRole = intent.getStringExtra("ROLE") ?: "Student"
             myRole = if (rawRole.equals("Coach", ignoreCase = true)) "Coach" else "Student"
             myName = intent.getStringExtra("NAME") ?: myRole
@@ -146,9 +124,6 @@ class LiveSessionActivity : AppCompatActivity() {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  VIEW BINDING
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun bindViews() {
         webView        = findViewById(R.id.liveChessWebView)
         tvSessionTurn  = findViewById(R.id.tvSessionTurn)
@@ -164,9 +139,6 @@ class LiveSessionActivity : AppCompatActivity() {
         tvMoveHistory.text = "No moves yet."
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  WEBVIEW
-    // ═══════════════════════════════════════════════════════════════════════════
     @Suppress("DEPRECATION")
     private fun setupWebView() {
         webView.settings.apply {
@@ -188,9 +160,6 @@ class LiveSessionActivity : AppCompatActivity() {
         webView.loadUrl("file:///android_asset/chessboard.html")
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  BUTTONS
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun wireButtons() {
         findViewById<Button>(R.id.btnLeaveSession).setOnClickListener { finish() }
         findViewById<Button>(R.id.btnSessionFlip).setOnClickListener { js("flipBoard();") }
@@ -215,9 +184,6 @@ class LiveSessionActivity : AppCompatActivity() {
         updateNavButtons()
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  INITIAL LOAD
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun loadInitialState() {
         if (lessonId.isEmpty()) { startPollingLoop(); return }
 
@@ -227,7 +193,6 @@ class LiveSessionActivity : AppCompatActivity() {
                 if (resp.isSuccessful && resp.body() != null) {
                     val lesson = resp.body()!!
 
-                    // ── Heavy string work on IO thread ─────────────────────────
                     val pgn   = lesson.pgnHistory ?: ""
                     val fen   = lesson.boardState ?: ""
                     val notes = lesson.notes      ?: ""
@@ -236,7 +201,6 @@ class LiveSessionActivity : AppCompatActivity() {
                         if (lesson.status == "COMPLETED") markCompleted()
                         serverFen = fen
 
-                        // Delay slightly for WebView init then apply
                         webView.postDelayed({
                             applyBoardState(pgn, fen, jumpToLatest = true)
                         }, 800)
@@ -247,19 +211,11 @@ class LiveSessionActivity : AppCompatActivity() {
                         }
                     }
                 }
-            } catch (_: Exception) { /* polling will catch up */ }
+            } catch (_: Exception) {  }
             startPollingLoop()
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  POLLING LOOP  (2 s — same interval as the web)
-    //
-    //  CRITICAL DESIGN: All heavy work (string parsing, regex, comparison) is
-    //  done on the IO dispatcher.  We only switch to the Main dispatcher when
-    //  we know something actually changed, and the Main block does the minimum
-    //  amount of work possible to avoid blocking the UI thread.
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun startPollingLoop() {
         lifecycleScope.launch(Dispatchers.IO) {
             while (isActive && !isCompleted) {
@@ -270,7 +226,6 @@ class LiveSessionActivity : AppCompatActivity() {
                     if (!resp.isSuccessful || resp.body() == null) continue
                     val lesson = resp.body()!!
 
-                    // ── All computation stays on IO thread ─────────────────────
                     val newStatus = lesson.status        ?: ""
                     val newPgn    = lesson.pgnHistory    ?: ""
                     val newFen    = lesson.boardState    ?: ""
@@ -278,14 +233,12 @@ class LiveSessionActivity : AppCompatActivity() {
 
                     val suppressEcho = System.currentTimeMillis() < lastLocalMoveMs + 3000
 
-                    // Compute what changed (IO thread — no main-thread work here)
                     val strippedNew  = if (suppressEcho) canonicalPgn else stripPgn(newPgn)
                     val pgnChanged   = !suppressEcho && strippedNew != canonicalPgn
                     val fenChanged   = !suppressEcho && !pgnChanged && newPgn.isBlank() && newFen != serverFen
                     val notesChanged = newNotes.isNotBlank() && newNotes != currentNotes
                     val justCompleted = newStatus == "COMPLETED" && !isCompleted
 
-                    // Only pay the cost of switching to the main thread when needed
                     if (!justCompleted && !pgnChanged && !fenChanged && !notesChanged) continue
 
                     withContext(Dispatchers.Main) {
@@ -303,20 +256,16 @@ class LiveSessionActivity : AppCompatActivity() {
                         }
                     }
 
-                } catch (_: Exception) { /* transient network blip */ }
+                } catch (_: Exception) {  }
             }
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  BOARD STATE APPLICATION  (must be called on the Main thread)
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun applyBoardState(pgn: String, fen: String, jumpToLatest: Boolean) {
         if (pgn.isNotBlank()) {
             val stripped = stripPgn(pgn)
             canonicalPgn = stripped
 
-            // loadFromPgn() in the HTML always syncs viewingIndex to latest
             js("loadFromPgn(${pgn.jsStr()});")
 
             rebuildHistoryFromPgn(stripped)
@@ -343,12 +292,6 @@ class LiveSessionActivity : AppCompatActivity() {
         updateTurnLabel()
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  PGN UTILITIES
-    //  Use pre-compiled companion-object Regex — never allocate inside a loop.
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /** Strip headers, comments, variations and trailing result tokens from PGN. */
     private fun stripPgn(pgn: String): String {
         if (pgn.isBlank()) return ""
         return pgn
@@ -359,20 +302,15 @@ class LiveSessionActivity : AppCompatActivity() {
             .trim()
     }
 
-    /** Parse stripped PGN into a flat SAN move list in [moveHistory]. */
     private fun rebuildHistoryFromPgn(stripped: String) {
         moveHistory.clear()
         if (stripped.isBlank()) { updateMoveHistoryText(); return }
-        for (token in stripped.split(WHITESPACE_RE)) {   // use pre-compiled pattern
+        for (token in stripped.split(WHITESPACE_RE)) {
             val t = token.trim()
             if (t.isEmpty() || t.matches(MOVENUM_RE) || t.matches(RESULT_TOK)) continue
             moveHistory.add(t)
         }
     }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  MOVE HISTORY UI
-    // ═══════════════════════════════════════════════════════════════════════════
 
     private fun updateMoveHistoryText() {
         if (moveHistory.isEmpty()) { tvMoveHistory.text = "No moves yet."; return }
@@ -419,9 +357,6 @@ class LiveSessionActivity : AppCompatActivity() {
         tvSessionTurn.text = if (side == "w") "⚪ White to Move" else "⚫ Black to Move"
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  LOCAL MOVE  (JS → Kotlin, dispatched to main thread by ChessBridge)
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun onLocalMove(newFen: String, newPgn: String) {
         lastLocalMoveMs = System.currentTimeMillis()
         serverFen = newFen
@@ -440,13 +375,10 @@ class LiveSessionActivity : AppCompatActivity() {
                 RetrofitClient.liveSessionService.updateBoardState(
                     lessonId, BoardUpdateRequest(newFen, newPgn)
                 )
-            } catch (_: Exception) { /* polling will confirm */ }
+            } catch (_: Exception) {  }
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  SAVE BUTTON
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun saveCurrentBoardState() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -464,9 +396,6 @@ class LiveSessionActivity : AppCompatActivity() {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  CHAT
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun sendChatMessage(text: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -500,8 +429,7 @@ class LiveSessionActivity : AppCompatActivity() {
             val arr = JSONArray(jsonNotes)
             for (i in 0 until arr.length()) {
                 val msg = arr.getJSONObject(i)
-                // Case-insensitive comparison as a safety net so "COACH", "Coach",
-                // and "coach" all correctly resolve to the same person's side.
+
                 val isMe = msg.optString("sender", "").equals(myRole, ignoreCase = true)
                 addChatBubble(
                     senderName = msg.optString("name",   "Unknown"),
@@ -559,9 +487,6 @@ class LiveSessionActivity : AppCompatActivity() {
         chatContainer.addView(bubble)
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  SESSION COMPLETE
-    // ═══════════════════════════════════════════════════════════════════════════
     private fun markCompleted() {
         isCompleted = true
         etChatInput.isEnabled = false
@@ -569,10 +494,6 @@ class LiveSessionActivity : AppCompatActivity() {
         tvSessionTurn.text = "Session Completed"
         webView.post { js("setReadOnly();") }
     }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  HELPERS
-    // ═══════════════════════════════════════════════════════════════════════════
 
     private fun js(script: String) = webView.evaluateJavascript(script, null)
 
@@ -584,12 +505,6 @@ class LiveSessionActivity : AppCompatActivity() {
         return "'$escaped'"
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  JS → KOTLIN BRIDGE
-    //  Static non-inner class + WeakReference = no Activity leak.
-    //  @JavascriptInterface is called on a background thread — always dispatch
-    //  to main thread and NEVER call evaluateJavascript() from here.
-    // ═══════════════════════════════════════════════════════════════════════════
     class ChessBridge(activity: LiveSessionActivity) {
         private val actRef = java.lang.ref.WeakReference(activity)
 

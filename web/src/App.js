@@ -13,7 +13,6 @@ const DashboardFactory = () => {
   if (!userStr) return <Navigate to="/login" />;
   const user = JSON.parse(userStr);
 
-  // NEW ROUTING LOGIC: Checks for Admin first
   if (user.role === 'Admin') return <AdminDashboard />;
   if (user.role === 'Coach') return <CoachDashboard />;
   return <StudentDashboard />;

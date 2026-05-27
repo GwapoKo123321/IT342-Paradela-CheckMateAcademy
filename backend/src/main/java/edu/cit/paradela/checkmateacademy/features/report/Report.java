@@ -28,5 +28,5 @@
         @Column(name = "created_at")
         private LocalDateTime createdAt = LocalDateTime.now();
 
-        private String status = "PENDING"; // Can be PENDING or RESOLVED
+        private String status = "PENDING";
     }

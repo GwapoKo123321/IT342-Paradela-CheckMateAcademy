@@ -26,12 +26,10 @@ class CoachDashboardActivity : AppCompatActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.coachBottomNavigation)
         val btnLogout = findViewById<Button>(R.id.btnCoachLogout)
 
-        // Load Default Fragment
         if (savedInstanceState == null) {
             loadFragment(CoachScheduleFragment())
         }
 
-        // Handle Bottom Nav Clicks
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_coach_lessons -> {
@@ -50,7 +48,6 @@ class CoachDashboardActivity : AppCompatActivity() {
             }
         }
 
-        // Handle Logout
         btnLogout.setOnClickListener {
             val intent = Intent(this, LandingPage::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

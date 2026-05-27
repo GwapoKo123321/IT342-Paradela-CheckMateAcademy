@@ -46,17 +46,14 @@ class CoachProfileFragment : Fragment() {
 
         coachId = requireActivity().intent.getStringExtra("USER_ID") ?: ""
 
-        // Pre-fill name from login intent
         val savedName = requireActivity().intent.getStringExtra("NAME")
         if (!savedName.isNullOrBlank()) etFullName.setText(savedName)
 
-        // Load current coach profile from server to pre-fill all fields
         if (coachId.isNotEmpty()) loadCoachProfile()
 
         btnSave.setOnClickListener { saveCoachProfile() }
     }
 
-    // ── Load ───────────────────────────────────────────────────────────────────
     private fun loadCoachProfile() {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -73,12 +70,11 @@ class CoachProfileFragment : Fragment() {
                     }
                 }
             } catch (_: Exception) {
-                // Silently fail — user can still fill fields manually
+
             }
         }
     }
 
-    // ── Save ───────────────────────────────────────────────────────────────────
     private fun saveCoachProfile() {
         if (coachId.isEmpty()) {
             Toast.makeText(requireContext(), "Not logged in. Please restart the app.", Toast.LENGTH_SHORT).show()
@@ -104,7 +100,7 @@ class CoachProfileFragment : Fragment() {
             var success = false
             var errorCode = 0
             try {
-                // 1. Update name, chess username, elo via the general user profile endpoint
+
                 val userUpdate = UserProfile(
                     fullName      = name,
                     chessUsername = username.ifEmpty { null },
@@ -113,7 +109,6 @@ class CoachProfileFragment : Fragment() {
                 val userResp = RetrofitClient.coachService.updateUserProfile(coachId, userUpdate)
                 if (!userResp.isSuccessful) { errorCode = userResp.code() }
 
-                // 2. Update coach-specific fields (specialties, bio) via the coach profile endpoint
                 val coachUpdate = CoachProfileRequest(
                     specialties  = specialties,
                     bio          = bio,

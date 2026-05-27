@@ -35,7 +35,6 @@ class StudentDashboardActivity : AppCompatActivity() {
                 R.id.nav_student_schedule -> { loadFragment(MyScheduleFragment()); true }
                 R.id.nav_student_book -> { loadFragment(BookLessonFragment()); true }
 
-                // ADDED THE TRAINING BOARD ROUTE
                 R.id.nav_student_training -> { loadFragment(TrainingBoardFragment()); true }
 
                 R.id.nav_student_reviews -> { loadFragment(LessonReviewsFragment()); true }

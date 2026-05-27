@@ -13,6 +13,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
     Optional<User> findByEmailIgnoreCase(String email);
 
-    // Added to fetch coaches for the student booking form
     List<User> findByRole(String role);
 }

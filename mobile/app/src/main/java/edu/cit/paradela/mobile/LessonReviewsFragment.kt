@@ -77,7 +77,6 @@ class LessonReviewsFragment : Fragment() {
 
         val content = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL }
 
-        // Coach name
         content.addView(TextView(requireContext()).apply {
             text = "Coach: ${lesson.coachName ?: "Unknown Coach"}"
             textSize = 18f
@@ -85,7 +84,6 @@ class LessonReviewsFragment : Fragment() {
             setTypeface(null, android.graphics.Typeface.BOLD)
         })
 
-        // Date
         content.addView(TextView(requireContext()).apply {
             text = formatLessonTime(lesson.startTime)
             textSize = 13f
@@ -93,7 +91,6 @@ class LessonReviewsFragment : Fragment() {
             setPadding(0, 8, 0, 24)
         })
 
-        // Bottom row: COMPLETED badge + View Notes button
         val row = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL

@@ -28,14 +28,12 @@ public class AdminService {
         userRepository.deleteById(userId);
     }
 
-
     public User toggleUserFlag(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setIsFlagged(user.getIsFlagged() == null ? true : !user.getIsFlagged());
         return userRepository.save(user);
     }
-
 
     public User toggleEloVerification(UUID userId) {
         User user = userRepository.findById(userId)
